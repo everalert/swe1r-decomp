@@ -1,0 +1,1 @@
+float GetDecelerationFactor(float decelerationInterval, float frameTime);

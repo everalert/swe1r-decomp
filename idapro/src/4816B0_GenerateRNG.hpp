@@ -1,0 +1,1 @@
+int GenerateRNG(int &RandomNumber, int &RNGIsInitialized);

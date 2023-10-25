@@ -1,0 +1,12 @@
+functions/code that IDA somehow missed and doesn't include in the function list
+
+0x47B520 → 0x47B9D5 = LP "Super Function"
+there are more functions adjacent to this that IDA didn't pick up
+
+SWEP1RCR.EXE+7AB40 → SWEP1RCR.EXE+7AEDD = LP "TurnResponseFunction" //called by SWEP1RCR.EXE+7B60A
+SWEP1RCR.EXE+79E10 → SWEP1RCR.EXE+7A1FC //called by SWEP1RCR.EXE+7B60A
+SWEP1RCR.EXE+79920 → SWEP1RCR.EXE+79D33 //seems to deal with a lot of static vars/constants
+46CE10 > 46CE2F ; after 46BEC0 turn rate function
+
+454A03
+454A1F

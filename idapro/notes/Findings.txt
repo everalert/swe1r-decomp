@@ -1,0 +1,9 @@
+Points of interest relevant to speedrunning/gameplay
+
+-??? ref in 46BEC0 Framerate capped between 10 and 500/1000fps (500fps may be conditional; to confirm) (0x480540)
+- Forced airborne "sliding" only kicks in over 100 speed
+- heat "warning" between exactly 50%-80% heat
+- heat "overheat" between exactly 80%-100% heat
+- ZOn status makes offroad and ice traction multipliers = 1.0, see 47AB40; not sure if overridden somewhere
+- if you overheat while tilting on lava, the segment to fire will always be on the side you're tilting toward (4788C0)
+- also, if boosting on lava you will heat at the lava rate, does not stack with pod's heatrate (4788C0)

@@ -1,0 +1,57 @@
+//SAVE.sav structure
+
+//0x00 byte[4], magic number
+//0x04 byte[0x50], file block
+//-> 0x00 string[0x20], most recent loaded filename?
+//-> 0x20-0x23 = ??? (0x21 = 1?, 0x22 = file slot?)
+//-> 0x24 byte, selected vehicle
+//-> 0x25 byte(flags), amateur circuit track unlocks, default 01
+//-> 0x26 byte(flags), semi-pro circuit track unlocks, default 01
+//-> 0x27 byte(flags), galactic circuit track unlocks, default 01
+//-> 0x28 byte(flags), invitational circuit track unlocks, default 00
+//-> 0x2A ushort(flags), amateur circuit placements (2bit/track)
+//-> 0x2C ushort(flags), semi-pro circuit placements (2bit/track)
+//-> 0x2E ushort(flags), galactic circuit placements (2bit/track)
+//-> 0x30 ushort(flags), invitational circuit placements (2bit/track)
+//-> 0x32-0x33 = ???
+//-> 0x34 uint32(flags), vehicle unlocks (bits), default 0x012E0200
+//-> 0x38 long(signed), truguts
+//-> 0x3C-0x3F = ??? (0x3C has data)
+//-> 0x40 byte, pit droids
+//-> 0x41 7byte, upgrade levels
+//-> 0x48 7byte, upgrade healths
+//-> 0x4F byte, always 0x00?
+
+
+
+//tgfd.dat structure
+
+//0x000 byte[4], magic word
+//-> 03 00 01 00
+
+//0x004 0x14 length data block?
+//-> structure = ???
+//-> seems to have track/vehicle unlock stuff, maybe freeplay related
+
+//0x018 byte[4][0x50], file blocks
+//-> same format as profile save data
+
+//0x158 float[0x64], race times
+//-- 3lap times for all tracks in track id order
+//-- for each track entry, regular then mirrored mode times
+//-- same pattern repeats for 1lap times
+//-- default 3599.99 (0xD7FF6045) for no saved time
+//0x2E8 string[0x64], time names
+//-- same pattern for tracks as race times
+//-- 0x20 length strings
+//-- default AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA for no saved time, otherwise name padded with 0x00
+//0xF68 byte[0x64], time vehicles
+//-- same pattern for tracks as race times
+//-- defaults to track favourite for no saved time
+
+//0xFCC byte[0xC], EOF padding?
+//-- 0x00 only
+
+//game ignores name and pod if time is default
+
+//total length 0x0FD8

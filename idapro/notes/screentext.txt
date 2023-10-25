@@ -1,0 +1,14 @@
+text constants used to display UI text in the game
+not every human-language string in the exe
+
+format
+- starts with "/SCREENTEXT_###/"
+- terminated with 0x00
+- filled with 0x00 until next 4-byte aligned address
+
+notes
+- seems to include formatting data
+- also seems to include string replacement keys, e.g. "You won %d Truguts!" (0x4C0D30)
+
+e.g.
+/SCREENTEXT_497/~~The Boonta Training Course',0

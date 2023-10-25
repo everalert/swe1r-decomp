@@ -1,0 +1,46 @@
+REWRITE ALL THE SHIT IN C
+
+EXE+0x78D80 - some part of engine loop starting with speed stuff?
+
+STUFF NOT EXTRACTED FROM LIGHTNING'S CHEAT TABLE
+	Settings section
+	Multiplayer section
+	Debug section
+	'Part/pitdroid stuff'
+	'Race stuff'
+	Surface tags section
+
+TO INVESTIGATE
+	fast terrain speed decay while dead (see: dying at top of smr conveyor and respawning with speed)
+
+"dissect code" in cheat engine (ctrl+j)
+double click to go where it's called
+right click -> spawn diagram
+
+https://github.com/louriccia/swe1r-reversing
+
+
+__cfltcvt_init_5() -- jinn reeso setup? (seems to overwrite mars name text)
+__cfltcvt_init_6() -- cy yunga setup? (seems to overwrite bullseye name text)
+both called by sub_4104F0()
+
+0x00400000 = EXE+0x00000
+
+5CD5E = generate junkyard part??
+
+-0x0C - camera forward vector?
+DFB1FC - camera up vector
+DFB204 - camera position?
+
+
+CHEAT CODES
+function appears to be at 0x485880
+0x50C454+8 = current scene id?
+rctrl n k	jinn reeso
+lctrl c y	cy yunga
+rshift f4 4	+1000 truguts
+
+game seems to have some weird render depth ordering issues wrt engine exhaust and the engines themselves
+- see vehicle select and watch exhaust as pod rotates around
+- possibly rendering the exhaust first, then engine, for each engine in order? (exh1 > eng1 > exh2 > eng2 > etc.)
+- also, rotation of exhaust is constant per frame, not multiplied by frametime

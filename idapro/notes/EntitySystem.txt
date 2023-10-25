@@ -1,0 +1,118 @@
+Not sure exactly what this is yet, but seems to be some kind of system for dynamically handling different object types. Referring to it as an entity system for now.
+
+non-obvious todos
+	- figure out functional labels for callback functions
+
+
+CONSTANTS
+
+Entity Type IDs		'Test', 'Toss', 'Trig', 'Hang', 'Jdge', 'Scen', 'Elmo', 'Smok', 'cMan'
+4BFEC0				pointer to entity definition vtable
+4BFE98				entity definition vtable, pointed to by 4BFEC0
+4BFD30				array of entity definition structs, pointed to by 4BFE98 entries
+50C87C				sometimes checked as a barrier, seems to be always set to 0x00000000
+
+
+FUNCTIONS
+
+void 4508B0()
+	executes funcptr 0x14 for all entities, will skip if entity flags 1<<24 or 1<<28 are on
+void 450930()
+	same as above but for 0x18
+void 4509B0()
+	same as above but for 0x1C
+	and yes these 3 funcs have identical code other than the funcptr offset
+void 450A30()
+	same as above 3 functions for 0x20, but without 50C87C const check
+450C50
+	calls 0x24, can call for all entity types at once
+450C00
+	calls 0x24
+450B30(const char* id, int index)
+	seems to derive a pointer offset from an entity id and index
+
+
+ENTITY DATA STRUCT
+0x28 length
++0x00 (u32)  entity type id
++0x04 ???  used in 450DB0 as arg to 450C00 -> determines whether func 0x24 runs
++0x08 (u32)  entity count
++0x0C (u32)  entity stride, e.g. 'Test' = 0x1F28 (vehicle state size)
++0x10 (ptr)  entity array address
++0x14 (ptr)  void funcptr(void* pEntity)
++0x18 (ptr)  void funcptr(void* pEntity), only Test has one (47AB40; vehicle orientation related)
++0x1C (ptr)  void funcptr(void* pEntity), seems to be for 'big' updates
++0x20 (ptr)  void funcptr(void* pEntity)
++0x24 (ptr)  .. funcptr(void* pEntity, ...);  ref in 450C00
+		takes a 4char keyword and a pointer to arbitrary data as addtl args? not confirmed
+			ok the assembly straight up assumes that the data will be on the stack, no arg3
+			maybe it was actually an arg in the source that got optimized out?
+		seems to be used for one-off calls to specific functionality, like an event system
+		some funcs use this for memory management/setup stuff
+		cMan uses it for setting state, e.g. responding to camera change keypresses
+
+
+ENTITY FLAGS
+Seems to be used to control execution flow of entity-related meta functions
+Found at +0x04 on all entity objects
+	0<<00  ???  sometimes on for Test entities, possibly AI only
+	0<<01  ???	sometimes on for Test entities, possibly only when AI in race
+	0<<02
+	0<<03
+	0<<04
+	0<<05
+	0<<06
+	0<<07
+	0<<08
+	0<<09
+	0<<10
+	0<<11
+	0<<12
+	0<<13
+	0<<14
+	0<<15
+	0<<16  ???	sometimes on for Test entities
+	0<<17
+	0<<18
+	0<<19
+	0<<20  ???	sometimes on for Test entities
+	0<<21  ???	sometimes on for Test entities
+	0<<22
+	0<<23
+	0<<24  ???	ref in 4509B0, seems to prevent 0x1C running if on
+	0<<25
+	0<<26
+	0<<27
+	0<<28  ???	ref in 4509B0, seems to prevent 0x1C running if on
+	0<<29
+	0<<30
+	0<<31
+
+
+ENTITY NOTES
+
+General notes
+	- entity get processed by type in order of the labels written below, in the case of mass calls
+	- meaning engine state is processed first, and cMan (camera?) last
+
+'Test'
+	- related to the enginedata
+
+'Toss'
+
+'Trig'
+
+'Hang'
+	- seen this used in context of watto's shop menus
+
+'Jdge'
+	- seems to handle things like lap completion
+
+'Scen'
+
+'Elmo'
+
+'Smok'
+
+'cMan'
+	- seems to handle things like camera and fog

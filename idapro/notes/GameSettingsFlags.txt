@@ -1,0 +1,3 @@
+0xE996DC
+
+1<<14	mirrored mode on

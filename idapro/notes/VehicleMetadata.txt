@@ -1,0 +1,20 @@
+array of vehicle resource metadata for things outside the gameplay.
+
+found at 0x4C2700
+address of relevant index pointed to by Pilot Data ("PodData") +0x18
+
+STRUCTURE
+0x34-byte struct
++0x00 (u32)		vehicle id
++0x04 (u32)		'Podd' index in modelblock
++0x08 (u32)		'MAlt' index in modelblock
++0x0C (u32)		'Part' id (low lod)
++0x10 (u32)		'Part' id (hight lod)
++0x14 (char*)	first name
++0x18 (char*)	last name
++0x1C (float)	Holotable pod scale (character select?)
++0x20 (float)	Character height (affects z-height of camera in pod inspect)
++0x24 (u32)		pod inspect hover height
++0x28 (u32)		sprite index for portrait
++0x2C (u32)		sprite index for flag
++0x30 (u32)		'Pupp' id (pilot model)

@@ -1,0 +1,8 @@
+const dump from LP's cheat table
+
+0x50C558  number of AI racers;  >21 crashes, apparently
+0x4C3114  AI stats table
+0x4C314C  AI stats last value
+0x4C707C  AI Level x10
+0x4C7080  AI spread
+

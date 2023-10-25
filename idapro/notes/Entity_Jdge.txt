@@ -1,0 +1,220 @@
+Entity object type 'Jdge'
+see EntitySystem.txt for more details about the system
+
+Seems to be for handling the race completion aspect of the game
+
+
+OFFSETS
+
+0x0000 (str32)	entity type id; always 'Jdge'
+0x0004 (u32)	entity system-related flags
+0x0008 (u23)	flags
+	0<<00  ??? ref in 463580
+	0<<01  ??? ref in 463580
+	0<<02  ??? ref in 463580
+	0<<03  ??? ref in 463580
+	0<<04
+	0<<05  ??? ref in 463580
+	0<<06
+	0<<07
+	0<<08
+	0<<09
+	0<<10
+	0<<11
+	0<<12
+	0<<13
+	0<<14
+	0<<15
+	0<<16
+	0<<17
+	0<<18
+	0<<19
+	0<<20
+	0<<21
+	0<<22
+	0<<23
+	0<<24
+	0<<25
+	0<<26
+	0<<27
+	0<<28
+	0<<29
+	0<<30
+	0<<31
+0x000C (f32)	total race time
+0x0010 (ptr) ref in 45E970, spline marker related
+	some kind of struct with data used to render marker positions, maybe 0x5C-long, could be 0x3FC
+	0x00 (u32)  ??? seems to be flags
+		there are checks on this that look like an id, but could just be an exact flag set
+		checked if exactly 0x3064 in 42B640, or elseif 1<<14 is on for alt code path
+	0x04 ???  always FFFFFFFF from what ive seen so far
+	0x08 ???  always FFFFFFFF from what ive seen so far
+	0x0C (u32)  ??? flags of some kind
+		1<<0  ??? ref in 431640, set on when copying mat4 into 0x1C mat3x4
+		1<<1  ??? ref in 431640, set on when copying mat4 into 0x1C mat3x4
+	0x10
+	0x14 (u32)  counter of some kind, ref in 42B640
+	0x18 (ptr)  ??? seems to just point to 0x54?
+	0x1C (mat4x3)  truncated transformation matrix;  used as transport data
+		0x1C (vec3)  X
+			0x1C (f32)  Xx
+			0x20 (f32)  Xy
+			0x24 (f32)  Xz
+		0x28 (vec3)  Y
+			0x28 (f32)  Yx
+			0x2C (f32)  Yy
+			0x30 (f32)  Yz
+		0x34 (vec3)  Z
+			0x34 (f32)  Zx
+			0x38 (f32)  Zy
+			0x3C (f32)  Zz
+		0x40 (vec3)  T
+			0x40 (f32)  Tx
+			0x44 (f32)  Ty
+			0x48 (f32)  Tz
+	0x4C
+	0x50
+	0x54
+	0x58 (ptr)  ??? seems to just point to next address?
+	...
+	0x22C ??? at least in one case, 6 bytes relating to RGB of the spline marker written to here
+			the RGB are 1 byte each tho so there is extra stuff
+			gotten here via devil pointer bullshit, [[[[[[[&0x00]+0x18]+0x00]+0x18]+0x00]+0x00]+0x20]
+0x0014 (ptr) ref in 45E970, spline marker related
+0x0018 (ptr) ref in 45E970, spline marker related
+0x001C (ptr) ref in 45E970, spline marker related
+0x0020 (ptr) ref in 45E970, spline marker related
+0x0024 (ptr) ref in 45E970, spline marker related
+0x0028
+0x002C
+0x0030
+0x0034
+0x0038
+0x003C
+0x0040
+0x0044
+0x0048
+0x004C
+0x0050
+0x0054
+0x0058
+0x005C
+0x0060
+0x0064 (mat4) ???
+	0x0064	X
+		0x0064	Xx
+		0x0068	Xy
+		0x006C	Xz
+		0x0070	0
+	0x0074	Y
+		0x0074	Yx
+		0x0078	Yy
+		0x007C	Yz
+		0x0080	0
+	0x0084	Z
+		0x0084	Zx
+		0x0088	Zy
+		0x008C	Zz
+		0x0090	0
+	0x0094  T
+		0x0094	Tx
+		0x0098	Ty
+		0x009C	Tz
+		0x00A0	1
+0x00A4 (mat4) ???
+	0x00A4	X
+		0x00A4	Xx
+		0x00A8	Xy
+		0x00AC	Xz
+		0x00B0	0
+	0x00B4	Y
+		0x00B4	Yx
+		0x00B8	Yy
+		0x00BC	Yz
+		0x00C0	0
+	0x00C4  Z
+		0x00C4	Zx
+		0x00C8	Zy
+		0x00CC	Zz
+		0x00D0	0
+	0x00D4  T
+		0x00D4	Tx
+		0x00D8	Ty
+		0x00DC	Tz
+		0x00E0	1
+0x00E4 (mat4) ???
+	0x00E4	X
+		0x00E4	Xx
+		0x00E8	Xy
+		0x00EC	Xz
+		0x00F0	0
+	0x00F4  Y
+		0x00F4	Yx
+		0x00F8	Yy
+		0x00FC	Yz
+		0x0100	0
+	0x0104  Z
+		0x0104	Zx
+		0x0108	Zy
+		0x010C	Zz
+		0x0110	0
+	0x0114  T
+		0x0114	Tx
+		0x0118	Ty
+		0x011C	Tz
+		0x0120	1
+0x0124
+0x0128
+0x012C
+0x0130
+0x0134
+0x0138
+0x013C
+0x0140
+0x0144
+0x0148
+0x014C
+0x0150
+0x0154
+0x0158
+0x015C
+0x0160
+0x0164 (mat4) ???
+	0x0164	X
+		0x0164	Xx
+		0x0168	Xy
+		0x016C	Xz
+		0x0170	0
+	0x0174	Y
+		0x0174	Yx
+		0x0178	Yy
+		0x017C	Yz
+		0x0180	0
+	0x0184	Z
+		0x0184	Zx
+		0x0188	Zy
+		0x018C	Zz
+		0x0190	0
+	0x0194	T
+		0x0194	Tx
+		0x0198	Ty
+		0x019C	Tz
+		0x01A0	1
+0x01A4
+0x01A8
+0x01AC ???	ref in 463580
+0x01B0
+0x01B4
+0x01B8
+0x01BC (u32)	number of racers 
+0x01C0 ???	ref in 463580
+0x01C4
+0x01C8 (u32)	race laps setting
+0x01CC
+0x01D0 (f32)	best lap record
+0x01D4 (f32)	3-lap record
+0x01D8
+0x01DC
+0x01E0
+0x01E4
+0x01E8 END

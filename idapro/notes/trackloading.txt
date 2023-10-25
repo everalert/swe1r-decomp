@@ -1,0 +1,54 @@
+check what's different about anakin/teemto code when loading modelblock
+
+sub_45BAB0
+	- called both when starting race from cantina and when restarting a race
+	- doesn't seem to do the actual loading
+	- seems to calculate an offset, or maybe runs a test?
+	- called by sub_45B610
+	- called by sub_45B7D0
+	- calls no functions
+
+sub_45B610
+	- probably called when restarting a race
+	- maybe used to prep some data during track load?
+	- called by sub_45B290
+	- calls
+		sub_41C4D0
+		sub_41D6C0
+		sub_41DE50
+		sub_420F70
+		sub_41DE50
+		sub_45BAB0 (MAYBE_TrackLoading)
+		sub_411370
+
+sub_45B7D0
+	- probably called when loading a race from cantina
+	- maybe used to prep some data during track load?
+	- called by sub_45B290
+	- calls
+		sub_4816B0 (GenerateRNG)
+		sub_4816B0 (GenerateRNG)
+		sub_449D00 (CalculateAllUpgradedStats)
+		sub_449300
+		sub_449300
+		sub_45BAB0 (TrackLoadingTestMAYBE)
+		sub_411370
+
+sub_45B290
+	- possibly the highest-level track loading related function?
+	- calls both sub_45B610 and sub_45B7D0; as an if-else
+	- calls
+
+
+sub_41D6B0
+	- appears to retrieve a static variable that is used to determine whether the player is in a race or at the cantina?
+	- said static var at 0x4D5E00
+	- called by like, everything
+
+sub_41E660
+	- called when pressing button to load race from cantina
+
+loc_45E8E5
+	- called when pressing button to restart race
+	- ida pro doesn't think this is a function or in a function?
+	- code that leads to this seems to start at 0x45E1F4
