@@ -1,3 +1,23 @@
+4368AC
+	- triggered when loading from track select only
+	- lots of stuff going on, looks like it could be some state setter stuff that happens before actual load
+
+45BAB0
+	- triggered when loading from track select and when restarting
+	- does something with selected racer and track ids
+	- skips the above based on some check at the top
+	- references AAII and Locl magics
+
+457410
+	- possibly the actual function that does the whole load chain?
+	- ends in "exit()", which seems to actually be an entity system handler
+	- called with address of Hang entity
+		[[[SWEP1RCR.EXE+BFEC0]+C]+10]
+		OR [SWEP1RCR.EXE+10C454]
+
+
+OLDER NOTES BELOW
+
 check what's different about anakin/teemto code when loading modelblock
 
 sub_45BAB0
@@ -38,6 +58,22 @@ sub_45B290
 	- possibly the highest-level track loading related function?
 	- calls both sub_45B610 and sub_45B7D0; as an if-else
 	- calls
+	- called by 45A040, 4574C3
+	- seems to take 3 args and ret void
+.text:004574B0                 mov     eax, [esp+34h] // 'All!' 0x416C6C21
+.text:004574B4                 mov     ecx, [esp+30h] // some ptr 0x0045DFCA
+.text:004574B8                 add     esp, 4 // inc stack pointer
+.text:004574BB                 push    eax // push var2
+.text:004574BC                 push    ecx // push var1
+.text:004574BD                 push    esi // ? probably unrelated, popped later in func
+.text:004574BE                 call    UNK_TrackLoading_45B290
+
+sub_45A040
+	- magics ref'd: Fini, Abrt, quit, RStr
+	- in-race pause menu handler?
+
+sub_4574C3
+	- magics ref'd: Wake, Jdge
 
 
 sub_41D6B0

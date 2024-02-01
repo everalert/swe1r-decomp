@@ -1,0 +1,114 @@
+text rendering is basically a queue, where different parts of the game add text to the queue and then it all gets flushed in one go
+
+2 types/queues of text to render
+- type 1 - max 128 items - main text rendering queue
+- type 2 - max 32 items - unsure of semantic difference to type 1, but seems to filter out characters differently, does not seem to make a difference in terms of aesthetic options
+
+common pattern of setting up a text item is:
+swrText_Translate	with a fmt string
+sprintf			with some string constant into a buffer
+swrText_CreateEntry*	with the buffer
+- neither Translate or sprintf are required to add text to the queue
+- sprintf often omitted, occasionally both are
+- not sure exactly the role of Translate, but probably literally for swapping in language strings
+- if so then it makes sense that sprintf only sometimes appears, for strings with no translation
+
+racer has a bespoke string formatting system for setting font, color, etc.
+- fn 0x42EC50 interprets: ~(b, f, F)
+	- ~b = marks the string to be cut off later if anywhere in string
+	- ~f = if at the start, selects font using char3 as index
+		- CreateEntry will set this for you unless you set font arg to -1
+		- use CreateEntry1 or CreateEntry2 for shorthand)
+		- max value seems to be 6
+		- font 0 seems to be the same as setting -1 in CreateEntry
+		- fonts 1-3 seem to only be usable for numbers
+	- ~F = same as ~f, but position and scale are halved
+- and then fn 0x42E150 interprets: ~(0-9, b, c, k, n, o, p, r, s, t, ~)
+	- ~0..9 = use preset color from index 0..9
+	- ~b = all characters after will be skipped; code looks like it should only skip 1 tho
+	- ~t = code looks like render '~' char, but nothing happens
+	- ~k = toggle light outline
+	- ~o = toggle heavy outline
+	- ~s = toggle shadow; yes, these 3 can stack
+	- ~p = reset outlines/shadow
+	- ~c = center align
+	- ~r = right align
+	- ~n = interpret string length as y offset?
+	- ~~ = do nothing?
+
+
+CONSTANTS
+
+0x50C750	current index/working slot for queue 1
+0x50C758	current index/working slot for queue 2
+0xE30380	array for storing type 1 strings; 128-byte items, 256 stride
+0xE303A0	array for storing type 2 strings; 128-byte items, 256 stride, interleaved with type 1
+0xE34860	array of type 1 positions; { u16, u16 }
+0xE34660	array of type 2 positions; { u16, u16 }
+0xE2B480	array of type 1 rgba values; { u8, u8, u8, u8 }
+0xE343A0	array of type 2 rgba values; { u8, u8, u8, u8 }
+
+
+FUNCTIONS
+
+0x407b00
+char* swrText_GetKeyNameText(uint32_t id, char* str);
+
+0x421120
+int swrText_ParseRacerTab(char* filepath);
+
+0x4212f0
+int swrText_CmpRacerTab(char** a, char** b);
+
+0x421330
+void swrText_Shutdown(void);
+
+0x421360
+char* swrText_Translate(char* text);
+
+0x4503E0 swrText_CreateEntry
+core item for adding to the text queues, all other entry fns use this
+*fn (x: u16, y: u16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8, font: i32, entry2: i32) callconv(.C) void;
+
+0x450530 swrText_CreateEntry1
+core fn shorthand for making type 1 entries
+*fn (x: u16, y: u16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8) callconv(.C) void;
+
+0x450560 swrText_CreateWhiteEntry1
+macro for creating unformatted, white-colored type 1 entries
+*fn (x: u16, y: u16, str: [*:0]const u8) callconv(.C) void;
+
+0x450590 swrText_CreateWhiteFontEntry1
+macro for white-colored font-selected type 1 entries
+*fn (font: i32, x: u16, y: u16, str: [*:0]const u8) callconv(.C) void;
+
+0x4505C0 swrText_CreateEntry2
+core fn shorthand for making type 2 entries
+*fn (x: u16, y: u16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8) callconv(.C) void;
+
+0x4505F0
+macro for calling Translate with a fmt switch, before calling DrawTime3
+*fn (x: u32, y: u32, time: f32, r: u32, g: u32, b: u32, a: u32, fmt: i32) callconv(.C) void;
+
+0x450670 swrText_DrawTime2
+formats a float as "ss.ss"/"m:ss.ss" and adds it as an unformatted type 1 item
+*fn (x: u32, y: u32, time: f32, r: u32, g: u32, b: u32, a: u32) callconv(.C) void;
+
+0x450760 swrText_DrawTime3
+formats a float as "ss.sss"/"m:ss.sss" and adds it as an unformatted type 1 item
+*fn (x: u32, y: u32, time: f32, r: u32, g: u32, b: u32, a: u32) callconv(.C) void;
+
+0x450280
+seems to be for processing type 1 text
+
+0x450100
+seems to be the fn that actually flushes the type 1 queue (called from 0x450280)
+
+0x4502B0
+seems to be for processing type 2 text
+
+0x4501F0
+seems to be the fn that actually flushes the type 2 queue (called from 0x4502B0)
+
+0x483CB0
+seems to be for finalizing text rendering, calls 0x450280 and 0x4502B0, 2 layers deep from GameLoop
