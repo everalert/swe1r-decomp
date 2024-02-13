@@ -1,0 +1,33 @@
+MAIN MENU
+
+Hang+0x5F = selected menu item index
+
+CONSTANTS
+
+50C308 - checked when activating menu item 0 (start race)
+
+
+MENU SELECTION VALUE ACCESSES
+
+constantly firing: (probably to know which item to highlight)
+00436B07 - 0FBE 56 5F  - movsx edx,byte ptr [esi+5F]
+
+when scrolling down, both these fire:
+00436B53 - 8A 5E 5F  - mov bl,[esi+5F]
+00436B58 - 88 5E 5F  - mov [esi+5F],bl
+
+when scrolling down past the bottom, causing wrap to top:
+00436B6C - C6 46 5F 00 - mov byte ptr [esi+5F],00
+
+when scrolling up, both these fire
+00436B85 - 8A 46 5F  - mov al,[esi+5F]
+00436B8A - 88 46 5F  - mov [esi+5F],al
+
+when scrolling up past the top, causing wrap to bottom:
+00436B96 - 88 46 5F  - mov [esi+5F],al
+
+when first entering menu, and game sets selected item to 'start race':
+004368D3 - C6 46 5F 00 - mov byte ptr [esi+5F],00
+
+when activating selected option, and proceeding to next screen:
+00436D86 - 8A 46 5F  - mov al,[esi+5F]

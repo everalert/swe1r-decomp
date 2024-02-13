@@ -24,9 +24,9 @@ OFFSETS
 0x001C ???  Spawn value, definitely related to the other spawn values (included in a memcpy)
 0x0020 (mat4)  transformation matrix
 	0x0020 (vec4) X
-	    0x0020 (f32)  Xx
-	    0x0024 (f32)  Xy
-	    0x0028 (f32)  Xz
+		0x0020 (f32)  Xx
+		0x0024 (f32)  Xy
+		0x0028 (f32)  Xz
 		0x002C (f32)  0
 	0x0030 (vec4) Y
 		0x0030 (f32)  Yx

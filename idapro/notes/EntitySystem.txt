@@ -40,6 +40,8 @@ ENTITY DATA STRUCT
 +0x0C (u32)  entity stride, e.g. 'Test' = 0x1F28 (vehicle state size)
 +0x10 (ptr)  entity array address
 +0x14 (ptr)  void funcptr(void* pEntity)
+		seems to act like a 'handle current state' semantic role
+		Hang uses it to call functions that actually do draw calls
 +0x18 (ptr)  void funcptr(void* pEntity), only Test has one (47AB40; vehicle orientation related)
 +0x1C (ptr)  void funcptr(void* pEntity), seems to be for 'big' updates
 +0x20 (ptr)  void funcptr(void* pEntity)
@@ -50,6 +52,8 @@ ENTITY DATA STRUCT
 		seems to be used for one-off calls to specific functionality, like an event system
 		some funcs use this for memory management/setup stuff
 		cMan uses it for setting state, e.g. responding to camera change keypresses
+		Hang uses it to update which menu to draw
+		seems to be more like a general update/prep for next frame semantic role
 
 
 ENTITY FLAGS
@@ -91,7 +95,11 @@ Found at +0x04 on all entity objects
 
 ENTITY NOTES
 
+entities listed here are in order of the managers in game memory
+
 General notes
+	- total size of all entities, 1 of each : 0x4370/17264 bytes
+		- i.e. mapping dif 1bit->32bits = 0x21B/539 bytes header
 	- entity get processed by type in order of the labels written below, in the case of mass calls
 	- meaning engine state is processed first, and cMan (camera?) last
 
@@ -104,6 +112,7 @@ General notes
 
 'Hang'
 	- seen this used in context of watto's shop menus
+	- does the calls for drawing menus (not sure if it also does other stuff besides managing menus)
 
 'Jdge'
 	- seems to handle things like lap completion

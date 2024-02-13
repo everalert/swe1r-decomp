@@ -1,0 +1,116 @@
+- seems to be for managing menu/ui state in the cantina/shop area, incl. race settings
+- not sure if also responsible for loading screen transitions, but guessing not because so far the entities seem to only be active within one loading section
+
+length - 0xD0
+
+
+FUNCTIONS
+
+454D40 - DoMenuTransition, maybe
+457620 - EntityHangCallback0x14
+
+
+OFFSETS
+
+0x00
+0x04
+0x08	current menu; handled by callback0x14, also updated in callback0x14
+	-1	MENU NOT SET
+	0	"Legal" (seen in 454D40)
+	1	title screen menu, including file select and multiplayer
+	2	"Enter Name" (seen in 454D40)
+	3	start race menu ("main menu")
+	4	junkyard
+	5	race results; "post race info" in game code
+	6	NO CASE IN CODE
+	7	watto's shop
+	8	hangar (vehicle upgrades, inspect vehicle); "look at vehicle" in game code
+	9	vehicle select
+	10	NO CASE IN CODE
+	11	NO CASE IN CODE
+	12	track select (tournament screen)
+	13	track detail/race options
+	14	?? set to menu change async id global in 434EC0
+	15	?? set to menu change async id global in 4368A0
+	16
+	17
+	18	cantina entry with character cutscene; state assigned async in 435240
+	- not strongly linked to loaded area, it's only for selecting which UI to draw; e.g. scene 3 can be active with the junkyard loaded
+	- does not do the in-race ui or pause menu
+0x0C	previous menu
+0x10	sub-scene for menu 8 (inspect); checked in callback0x1C before drawing wattos shop? or junkyard?
+0x14	flags; seems to correspond to loading phase; updated/handled by callback0x24, 454D40
+	1<<0	checked in 454D40
+	1<<2	set in 454D40 when 1<<0==1
+	old notes:
+	4 in race
+	5 cantina/shop
+	6 loading race->cantina afted quitting; code around 45A0A0 runs here
+	7 loading race->cantina after finishing; loc_45A2A1 runs here
+0x18
+0x1C
+0x20 ?? ptr used in scene 3 case 2; also scenes 8, 15, 17
+0x24 ?? ptr used in scene 3 case 3
+0x28 ?? ptr used in scene 3 case 0; also in scene7
+0x2C ?? ptr used in scene 3 case 1; also in scene 4
+0x30
+0x34
+0x38 ?? sub-scene for scene 3 (start race menu)
+0x3C	prev. value of 0x38
+0x40	an 'Elmo' entity index; not sure of usage
+0x44
+0x48
+0x4C
+0x50
+0x54
+0x58
+0x5C	[4]u8	race settings
+	0x5C
+	0x5D  track
+	0x5E  circuit
+	0x5F  'main menu' menu selection index
+0x60	seems connected to +0x14; used in callback0x24
+0x64	seems connected to +0x14; used in callback0x24
+0x68	seems connected to +0x14; used in callback0x24
+0x6C	[4]u8	race settings
+	0x6C
+	0x6D
+	0x6E  mirror
+	0x6F
+0x70	[4]u8	race settings
+	0x70  used in 0x435240
+	0x71
+	0x72  no. of racers
+	0x73  selected racer
+0x74
+0x78
+0x7C
+0x80
+0x84
+0x88
+0x8C	[4]u8	race settings
+	0x8C  laps
+	0x8D
+	0x8E
+	0x8F
+0x90	[4]u8	race settings
+	0x90  AI speed
+	0x91  winnings split
+	0x92
+	0x93
+0x94
+0x98
+0x9C
+0xA0
+0xA4
+0xA8
+0xAC
+0xB0
+0xB4
+0xB8
+0xBC
+0xC0
+0xC4
+0xC8
+0xCC
+0xD0 END

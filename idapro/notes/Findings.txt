@@ -7,3 +7,4 @@ Points of interest relevant to speedrunning/gameplay
 - ZOn status makes offroad and ice traction multipliers = 1.0, see 47AB40; not sure if overridden somewhere
 - if you overheat while tilting on lava, the segment to fire will always be on the side you're tilting toward (4788C0)
 - also, if boosting on lava you will heat at the lava rate, does not stack with pod's heatrate (4788C0)
+- game adds roughly 0.005s and 0.0005s to the actual time before rendering it with 2 and 3 decimal places respectively
