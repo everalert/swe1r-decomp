@@ -1,0 +1,489 @@
+researching stat bar rendering, but findings suggest these functions are generally used for drawing (potentially textured) quads
+kind of turned into a quads research doc halfway through
+
+CONSTANTS
+
+0xE2AEC0  [7]f32    upgrade stat UI widths; i.e. "UI-formatted" stats
+0xE2AF40  [7]f32?   upgrade stat UI widths for selected part in shop; used to calc stat bar subsegment
+0x50C928  u32       stat bar drawing index? reset in HangCallback0x14
+
+0x4554CC  f32       stat bar height; static value not used for all cases, see draw stats fn asm
+0x4B91B8  u32       initialized quads index; always at first uninitialized slot, max 400
+
+
+FUNCTIONS
+
+lots of scene-specific functions that spam quad setup and adjustments, not all mentioned here; check functions that call fn_457ED0 or fn_4285D0 in ida or w/e to see them all
+
+fn_4550D0 - draws the actual stat bar widget thing
+
+drawing a bar seems to involve:
+
+fn_4285D0(i16,i32) - set drawing index on/off?
+	- special behaviour when arg1 = 0xFF37, 0xFF99 or 0xFF98, setting value at 50B700, 50B704 or 50B708 respectively
+	- otherwise, sets 1<<5 bit (0x20) in value at [E9BA74+8*arg1] on or off, depending on arg2
+	- ALWAYS used with fn_428660, even when not drawing the stat bar
+fn_428660(i16,i16,i16) - set position of item at drawing index?
+	- special behaviour when arg1 = 0xFF37, writing values as f32 to 4B91BC and 4B91C0 instead of the following
+	- otherwise, writes arg2 and arg3 to [E9BA60+16*arg1] and [E9BA62+16*arg1] respectively
+fn_4286F0(i16,f32,f32) - set size of item at drawing index?
+	- writes arg2 and arg3 to [E9BA68+8*arg1] and [E9BA6C+8*arg1] respectively
+fn_428740(i16,u8,u8,u8,u8) - set color of item at drawing index?
+	- special behaviour when arg1 = 0xFF99 or 0xFF98, setting values to 50B704 or 50B708 respectively
+	- otherwise, writes arg2-arg5 contiguously to [E9BA78+32*arg1]
+
+- all 4 used to setup a bar, using indexes starting at 130
+- nothing else seems to be involved in drawing a bar, BUT these functions are also used for other things
+
+fn_4282F0(i16,i32) - seems to be used to set default values to struct used in above functions, at position arg1
+	- will only set if arg1 < 400; meaning the quad drawing queue is limited to 400 quads?
+	- sets [E9BA78+8*arg1] to arg2
+	- does not set anything to [E9BA64+8*arg1], everything else gets a value
+	- sets 0x4B91B8 to arg1+1 if smaller; quad queue size?
+
+fn_4287E0
+- used to unset flags at [E9BA74+8*arg1]; arg2 used to specify bits to keep
+- occasionally gets paired with calls to fn_4282F0
+
+fn_457ED0()
+- seems to be used to setup the default data for the quads on the character select
+
+fn_4586E0(Hang:intptr)
+- seems to be a general setup fn for all quad data; also calls fn_457ED0
+- runs once on every scene transition in cantina
+
+fn_4114D0
+- seems to be used to load a sprite from tga file and place it at a given index, returning a ptr to the loaded data
+
+fn_446FB0
+- seems to be used to load a sprite from spriteblock from a given index, returning a ptr to the loaded data
+- just calls fn_446CA0 and forwards the output
+
+fn_412F60
+- clears out quad array indices 251..399 with null pointers; not sure when/why it triggers
+
+fn_428370
+- clears out all initialized quads, resetting the initialized quad index to 0
+
+
+QUAD STRUCT
+
+0x00	u16	x (assumes screen space of 320x240)
+0x02	u16	y
+0x04		?? possibly unused
+0x08	f32	width scale (i.e. 1 = sprite width px in screen space)
+0x0C	f32	height scale
+0x10		?? set to 0 in fn_4282F0, set manually in fn_428720; no other refs in ida, basically always 0 in game memory
+0x14	u32	flags
+		1<<05	mark to draw this frame?
+		1<<13	??
+		1<<15	??
+0x18	u32	RGBA
+0x1C	ptr	pointer to sprite data used to draw the quad
+0x20 END
+
+
+QUAD STRUCT ARRAY INDEXES
+possibly different layout between inrace and cantina
+
+000	in-race hud - LAP angled green line; see fn_4603F0
+001	in-race hud - POS angled green line; see fn_4603F0
+002	in-race hud - speedometer blue background, middle; see fn_4603F0
+003	in-race hud - speedometer blue background, left side; see fn_4603F0
+004	in-race hud - TIME curved green line; see fn_4603F0
+005	?? ref in fn_4603F0; on when arg1 1<<0 (1)
+006	?? ref in fn_4603F0; on when arg1 1<<0 (1)
+007	in-race hud - double tall bar hud, left bar; also bar of tall heat meter accent hud; see fn_4603F0
+008	in-race hud - double tall bar hud, right bar; see fn_4603F0
+009	in-race hud - curved top of accent above heat meter; see fn_4603F0
+010	in-race hud - speedometer blue background, right side; see fn_4603F0
+011	in-race hud - LAP to TIME connecting green line; see fn_4603F0
+012	in-race hud - TIME to POS connecting green line; see fn_4603F0
+013	in-race hud - blue bar background at top; see fn_4603F0
+014
+015
+016
+017
+018
+019
+020
+021
+022
+023
+024
+025	in-race minimap background; see fn_4603F0
+026
+027
+028
+029
+030
+031
+032
+033
+034
+035
+036
+037
+038
+039
+040
+041
+042
+043
+044
+045
+046
+047
+048
+049
+050
+051
+052
+053
+054
+055
+056
+057
+058
+059
+060
+061
+062
+063
+064
+065
+066
+067
+068
+069
+070
+071
+072
+073
+074
+075
+076
+077
+078
+079
+080
+081
+082
+083
+084
+085
+086
+087	?? ref in draw stat bar fn; indexes 87..97 all have fn_4287E0 called on them with 0x8000
+088	stat bar bg tiling
+089	..
+090	..
+091	..
+092	..
+093	..
+094	.. last
+095	?? ref in draw stat bar fn
+096	?? ref in draw stat bar fn
+097	?? ref in draw stat bar fn
+098
+099
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130	blank quads used for stat bars; doesn't seem to usable as blank quads when in race? or just bad hook?
+131	..
+132	..
+133	..
+134	..
+135	..
+136	..
+137	..
+138	..
+139	..
+140	..
+141	..
+142	..
+143	.. last (range setup in fn_457ED0)
+144	more blank quads; setup with same sprite index as above, but also calls fn_4287E0 with 0x2000 while setting these
+145	..
+146	..
+147	..
+148	..
+149	..
+150	..
+151	..
+152	..
+153	..
+154	..
+155	..
+156	..
+157	..
+158	.. could be the last blank quad in practice, observed sprite pointer changes for next 3?
+159	..
+160	..
+161	.. last (according to range setup in fn_457ED0)
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400 END
