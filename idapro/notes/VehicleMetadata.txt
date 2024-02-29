@@ -9,7 +9,7 @@ STRUCTURE
 +0x04 (u32)		'Podd' index in modelblock
 +0x08 (u32)		'MAlt' index in modelblock
 +0x0C (u32)		'Part' id (low lod)
-+0x10 (u32)		'Part' id (hight lod)
++0x10 (u32)		'Part' id (high lod)
 +0x14 (char*)	first name
 +0x18 (char*)	last name
 +0x1C (float)	Holotable pod scale (character select?)

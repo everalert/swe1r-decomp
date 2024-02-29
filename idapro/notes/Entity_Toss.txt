@@ -1,0 +1,38 @@
+seems to be the stuff that spawns from the pod as you race, e.g. the dust clouds
+BUT did not affect the dust clouds when included in savestate??
+
+
+ENTITY STRUCT
+
+0x00	'Toss' keyword
+0x04	entity flags
+0x08
+0x0C
+0x10
+0x14	looks like heap pointer
+0x18
+0x1C
+0x20	mat4
+0x24	..
+0x28	..
+0x2C	..
+0x30	..
+0x34	..
+0x38	..
+0x3C	..
+0x40	..
+0x44	..
+0x48	..
+0x4C	..
+0x50	..
+0x54	..
+0x58	..
+0x5C	..
+0x60	??	written to 0 when cb0x24 called with 'Aloc'
+0x64
+0x68	f32	timer? subtracted by frametime in cb0x1C
+0x6C	f32	0x68 divided by this in cb0x20, then used to modify A value in 0x70
+0x70	u32	looks like RGBA of some kind
+0x74	ptr to what looks like struct with pos+col data; fn_42B5E0 called with this as arg1 in callback0x20_47BA30
+0x78	looks like static pointer
+0x7C END

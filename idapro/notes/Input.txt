@@ -1,0 +1,52 @@
+if you overwrite the values in the finalized input arrays immediately after ProcessInput runs,
+gameplay WILL be affected, but menuing etc. WILL NOT be affected
+
+CONSTANTS
+
+0xEC8810 - u8 array of finalized "digital" inputs; apparently 15 items, see code at 0x405883
+0xEC8830 - f32 array of finalized/combined "analog" inputs; see code at 0x405791
+
+FUNCTIONS
+
+fn_404DD0 - fn ProcessInput() void
+
+0xEC8830 - [4]f32 - axis-type finalized/merged inputs (see AxisInput below for order)
+0xEC8810 - [15]u8 - button-type finalized/merged inputs (see ButtonInput below for order)
+- writing to these after ProcessInput is done will change the driving output
+
+0x4D5E30 - [4]f32 - axis-type joystick/gamepad inputs
+0x4D5E40 - [4]f32 - axis-type mouse inputs
+0x4D5E50 - [4]f32 - axis-type keyboard inputs
+
+0x4D5E80 - [15]f32 - button-type joystick/gamepad inputs
+0x4D5EBC - [15]f32 - button-type mouse inputs
+0x4D5EF8 - [15]f32 - button-type keyboard inputs
+- even though these are f32, the values are always 0 or 1
+
+- yes, the slots are repeated for all devices even though they obviously don't all have enough buttons/mappings
+- these arrays only affect race controls, not menus etc.
+
+pub const AxisInput = enum(u8) {
+    Unk1,
+    Unk2,
+    Steering,
+    Pitch,
+};
+
+pub const ButtonInput = enum(u8) {
+    Camera,
+    LookBack,
+    Brake,
+    Acceleration,
+    Boost,
+    Slide,
+    RollLeft,
+    RollRight,
+    Taunt,
+    Repair,
+    Unk11,
+    Unk12,
+    Unk13,
+    Unk14,
+    Unk15,
+};

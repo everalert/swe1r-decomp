@@ -1,69 +1,102 @@
 researching stat bar rendering, but findings suggest these functions are generally used for drawing (potentially textured) quads
 kind of turned into a quads research doc halfway through
 
+GENERAL NOTES
+- no special flags needed to get a sprite to render with an alpha channel, but sprites intended to be used as a color mask tend to have some flags set to change how the transparency looks
+- lots of scene-specific functions that spam quad setup and adjustments, not all mentioned here; check functions that call fn_457ED0 or fn_4285D0 in ida or w/e to see them all
+- not sure about the exact fn argument int types yet, but the bit sizes of them should be right
+
+
 CONSTANTS
 
-0xE2AEC0  [7]f32    upgrade stat UI widths; i.e. "UI-formatted" stats
-0xE2AF40  [7]f32?   upgrade stat UI widths for selected part in shop; used to calc stat bar subsegment
-0x50C928  u32       stat bar drawing index? reset in HangCallback0x14
-
-0x4554CC  f32       stat bar height; static value not used for all cases, see draw stats fn asm
-0x4B91B8  u32       initialized quads index; always at first uninitialized slot, max 400
+0xE9BA60  [400]QUAD	drawing queue; 0xE9EC60 END
+0xE2AEC0  [7]f32	upgrade stat UI widths; i.e. "UI-formatted" stats
+0xE2AF40  [7]f32?	upgrade stat UI widths for selected part in shop; used to calc stat bar subsegment
+0x50C928  u32		stat bar drawing index? reset in HangCallback0x14
+0x4554CC  f32		stat bar height; static value not used for all cases, see draw stats fn asm
+0x4B91B8  u32		initialized quads index; always at first uninitialized slot, max 400
 
 
 FUNCTIONS
 
-lots of scene-specific functions that spam quad setup and adjustments, not all mentioned here; check functions that call fn_457ED0 or fn_4285D0 in ida or w/e to see them all
+fn_4550D0
+	- the function that draws the actual stat bar widget thing each frame, calling the below functions
+	  to manipulate the quads each frame, among other things
 
-fn_4550D0 - draws the actual stat bar widget thing
-
-drawing a bar seems to involve:
-
-fn_4285D0(i16,i32) - set drawing index on/off?
-	- special behaviour when arg1 = 0xFF37, 0xFF99 or 0xFF98, setting value at 50B700, 50B704 or 50B708 respectively
-	- otherwise, sets 1<<5 bit (0x20) in value at [E9BA74+8*arg1] on or off, depending on arg2
-	- ALWAYS used with fn_428660, even when not drawing the stat bar
-fn_428660(i16,i16,i16) - set position of item at drawing index?
-	- special behaviour when arg1 = 0xFF37, writing values as f32 to 4B91BC and 4B91C0 instead of the following
-	- otherwise, writes arg2 and arg3 to [E9BA60+16*arg1] and [E9BA62+16*arg1] respectively
-fn_4286F0(i16,f32,f32) - set size of item at drawing index?
-	- writes arg2 and arg3 to [E9BA68+8*arg1] and [E9BA6C+8*arg1] respectively
-fn_428740(i16,u8,u8,u8,u8) - set color of item at drawing index?
-	- special behaviour when arg1 = 0xFF99 or 0xFF98, setting values to 50B704 or 50B708 respectively
-	- otherwise, writes arg2-arg5 contiguously to [E9BA78+32*arg1]
-
-- all 4 used to setup a bar, using indexes starting at 130
+drawing a bar seems to involve the following 4 functions:
+- in the case of the stat bars, indexes start at 130 and are essentially static/assumed
 - nothing else seems to be involved in drawing a bar, BUT these functions are also used for other things
 
-fn_4282F0(i16,i32) - seems to be used to set default values to struct used in above functions, at position arg1
+fn_4285D0(i16,i32/bool) - swrQuad_SetVisible(index, visible)
+	- set visible bit on/off in flags at given drawing index
+	- special behaviour when arg1 = 0xFF37, 0xFF99 or 0xFF98
+	  setting value at 50B700, 50B704 or 50B708 respectively
+	- otherwise, sets flag 1<<5 (visible) in item at index arg1, using arg2
+	- ALWAYS used with fn_428660, even when not drawing the stat bar
+
+fn_428660(i16,i16,i16) - swrQuad_SetPosition(index, x, y)
+	- set position of item at drawing index
+	- special behaviour when arg1 = 0xFF37, writing values as f32 to 4B91BC and 4B91C0 instead of the following
+	- otherwise, writes arg2, arg3 to 0x00, 0x02 of item at given index respectively
+
+fn_4286F0(i16,f32,f32) - swrQuad_SetScale(index, x, h)
+	- set scale of item at drawing index
+	- the system seems to figure out on its own how big the sprite is to begin with
+	- writes arg2, arg3 to 0x08, 0x0C of item at given index respectively
+
+fn_428740(i16,u8,u8,u8,u8) - swrQuad_SetColor(index, r, g, b, a)
+	- set color of item at drawing index
+	- special behaviour when arg1 = 0xFF99 or 0xFF98, setting values to 50B704 or 50B708 respectively
+	- otherwise, packs arg2-arg5 contiguously into 0x18 of item at given index
+
+other functions, related more generally to quad/sprite drawing:
+
+fn_4282F0(i16,i32) - swrQuad_InitializeQuad(index, sprite_ptr)
+	- seems to be used to initialize struct used in above functions, at position arg1
 	- will only set if arg1 < 400; meaning the quad drawing queue is limited to 400 quads?
 	- sets [E9BA78+8*arg1] to arg2
 	- does not set anything to [E9BA64+8*arg1], everything else gets a value
 	- sets 0x4B91B8 to arg1+1 if smaller; quad queue size?
 
-fn_4287E0
-- used to unset flags at [E9BA74+8*arg1]; arg2 used to specify bits to keep
-- occasionally gets paired with calls to fn_4282F0
+fn_4287E0(i16,u32) - swrQuad_SetFlags(index, flags)
+	- used to set flags of item at given quad queue index
+
+fn_428800(i16,u32) - swrQuad_UnsetFlags(index, flags)
+	- used to unset flags of item at given quad queue index
 
 fn_457ED0()
-- seems to be used to setup the default data for the quads on the character select
+	- seems to be used to setup the default data for the quads on the character select
 
 fn_4586E0(Hang:intptr)
-- seems to be a general setup fn for all quad data; also calls fn_457ED0
-- runs once on every scene transition in cantina
+	- seems to be a general setup fn for all quad data; also calls fn_457ED0
+	- runs once on every scene transition in cantina
 
-fn_4114D0
-- seems to be used to load a sprite from tga file and place it at a given index, returning a ptr to the loaded data
+fn_4114D0(filename:[*:0]const u8, index:u32)
+	- seems to be used to load a sprite from tga file and place it at a given index, returning
+	  a ptr to the loaded data
+	- not sure what unk2 is, but seems to correspond to the draw queue index in practice; 
+	  i.e. InitQuad tends to be called with the same index as was used here
 
-fn_446FB0
-- seems to be used to load a sprite from spriteblock from a given index, returning a ptr to the loaded data
-- just calls fn_446CA0 and forwards the output
+fn_446FB0(index:u32)
+	- seems to be used to load a sprite from spriteblock from a given index, returning a ptr to the loaded data
+	- just calls fn_446CA0 and forwards the output
+
+fn_412E90(index:u32, filename:[*:0]const u8)
+	- tries to load a TGA with the given filename into given internal resource index, then return 1
+	- if no filename given (nullptr), tries to load a sprite from spriteblock with the same index
+	- if successful, map the resource to the given index and return 1
+	- if the given index already has a resource attached, skip the whole thing and return 1
+	- otherwise (i.e. no filename given OR loadable spriteblock index) return 0
+	- filename given without extension
 
 fn_412F60
-- clears out quad array indices 251..399 with null pointers; not sure when/why it triggers
+	- clears out quad array indices 251..399 with null pointers; not sure when/why it triggers
 
 fn_428370
-- clears out all initialized quads, resetting the initialized quad index to 0
+	- clears out all initialized quads, resetting the initialized quad index to 0
+
+fn_416FD0
+	- seems to map pointer of loaded sprite data to internal resource index of some kind?
 
 
 QUAD STRUCT
@@ -71,13 +104,42 @@ QUAD STRUCT
 0x00	u16	x (assumes screen space of 320x240)
 0x02	u16	y
 0x04		?? possibly unused
-0x08	f32	width scale (i.e. 1 = sprite width px in screen space)
-0x0C	f32	height scale
+0x08	f32	x scale (i.e. 1 = sprite width px in screen space)
+0x0C	f32	y scale
 0x10		?? set to 0 in fn_4282F0, set manually in fn_428720; no other refs in ida, basically always 0 in game memory
 0x14	u32	flags
-		1<<05	mark to draw this frame?
-		1<<13	??
-		1<<15	??
+	1<<00	?? set on during quad init
+	1<<01
+	1<<02	flip horizontal
+	1<<03	flip vertical (TGAs loaded are rendered flipped vertically by default?)
+	1<<04
+	1<<05	visible
+	1<<06
+	1<<07
+	1<<08
+	1<<09	?? seen in fn_464630
+	1<<10
+	1<<11	?? seen in fn_464630, fn_408220
+	1<<12	?? seen in fn_464630
+	1<<13	enable world-space clipping; i.e. draw in 3d space, not in front of everything
+	1<<14	?? on for lens flares, see fn_464010;
+	1<<15	?? 'sprite has transparency'? .. leaving off has the effect of a black faded border on color mask sprites, as though the mask is being applied to the black part of the image rather than on the color you give it; on for lens flares, see fn_464010; seen in fn_458250, fn_464630
+	1<<16	high-res mode (320x240->640x480)?  on for lens flares, see fn_464010; on for "STAR" title text, see fn_435240
+	1<<17
+	1<<18
+	1<<19
+	1<<20
+	1<<21
+	1<<22
+	1<<23
+	1<<24
+	1<<25
+	1<<26
+	1<<27
+	1<<28
+	1<<29
+	1<<30
+	1<<31
 0x18	u32	RGBA
 0x1C	ptr	pointer to sprite data used to draw the quad
 0x20 END

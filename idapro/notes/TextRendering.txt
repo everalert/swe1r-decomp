@@ -25,6 +25,16 @@ racer has a bespoke string formatting system for setting font, color, etc.
 	- ~F = same as ~f, but position and scale are halved
 - and then fn 0x42E150 interprets: ~(0-9, b, c, k, n, o, p, r, s, t, ~)
 	- ~0..9 = use preset color from index 0..9
+		- col0 = 000000 (black)
+		- col1 = FFFFFF (white)
+		- col2 = 6EB4FF (blue)
+		- col3 = FFFF9C (yellow)
+		- col4 = 96FF96 (green)
+		- col5 = FF6450 (red)
+		- col6 = BC865E (brown)
+		- col7 = 6E6E80 (indigo-ish) 
+		- col8 = FFA7D1 (pink) 
+		- col9 = 985EFF (purple)
 	- ~b = all characters after will be skipped; code looks like it should only skip 1 tho
 	- ~t = code looks like render '~' char, but nothing happens
 	- ~k = toggle light outline
