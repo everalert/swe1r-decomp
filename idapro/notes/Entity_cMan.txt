@@ -3,14 +3,7 @@ environment state object
 'cMan' entity keyword
 936 bytes long (0x3A8)
 
-FIGURE OUT HOW THE VALUES BELOW FIT INTO THE CAMERA SYSTEM
-EXE+9FB1DC (DFB1DC) = camera offset mat4
-0xE29C44 holds address of vehicle state ('Test' index 0)
-notes from LP about how to parent camera to an arbitrary mat4
-0xDFB1B0 = 1;  some kind of camera override
-0xE9AAC0 = 1;  does not seem to correspond to cMan obj
-0xE9AAC4 = address to mat4 to parent to
-setting a custom camera like this prevents the track section visuals from loading for some reason
+see CameraSystem.txt for related notes about the underlying/related systems
 
 there seems to be more than one of these entities generated
 but not sure when the extra ones are used?
@@ -64,8 +57,8 @@ OFFSETS
 0x0068
 0x006C (u32)	Camera animation stage/phase;  ref in 452600
 0x0070 (f32)	Camera animation timer
-0x0074 ??? ref in 453E00
-0x0078 ??? ref in 453E00, gates some fog stuff
+0x0074 (ptr)	Meta Cam address (see CameraSystem.txt)
+0x0078 (u32)	Cam State index (see CameraSystem.txt)
 0x007C (u32)  Camera Mode
 		cycle order: 1, 4, 5, 2
 		1 = normal
@@ -140,7 +133,7 @@ OFFSETS
 		0x013C
 		0x0140
 		0x0144
-0x0148
+0x0148 ??? ref in CManCallback0x24_4543F0
 0x014C
 0x0150
 0x0154
@@ -245,20 +238,20 @@ OFFSETS
 0x02A4 ??? ref in 4542E0 (cManFunc0x20), looks like pointer to terrain flags
 0x02A8 (u32)  Fog toggles/flags (from LP)
 	1<<03 ref in 453E00
-0x02AC  level visual toggles/flags (from LP);  ref in 453E00
+0x02AC (u32)  track visual flags; defaults to 0xFFFFFF00
 0x02B0  camera zoom (from LP);  ref in 4533A0
 0x02B4  maybe render depth (from LP)
-0x02B8
-0x02BC (u32)  Fog R
-0x02C0 (u32)  Fog G
-0x02C4 (u32)  Fog B
-0x02C8 (u32)  Fog R
-0x02CC (u32)  Fog G
-0x02D0 (u32)  Fog B		
-0x02D4 (f32)  Fog Distance;  'load distance'? from LP 
-0x02D8
-0x02DC
-0x02E0
+0x02B8 (f32)	?? ref in HandleRaceCamera_maybe_453E00
+0x02BC	[3]u32	Fog RGB
+0x02C0	..
+0x02C4	..
+0x02C8	[3]u32	Fog RGB Target
+0x02CC	..
+0x02D0	..		
+0x02D4 (f32)	Fog Distance;  also manages track visual segment load distance 
+0x02D8 (f32)	Fog Distance Target
+0x02DC (f32)	?? ref in fn_4538D0
+0x02E0 (f32)	?? ref in fn_4538D0
 0x02E4
 0x02E8
 0x02EC

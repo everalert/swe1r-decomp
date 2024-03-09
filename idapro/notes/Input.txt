@@ -27,8 +27,8 @@ fn_404DD0 - fn ProcessInput() void
 - these arrays only affect race controls, not menus etc.
 
 pub const AxisInput = enum(u8) {
-    Unk1,
-    Unk2,
+    Thrust,
+    Unk2, // not analog brake
     Steering,
     Pitch,
 };

@@ -1,0 +1,285 @@
+ORIGINAL NOTES FROM LIGHTNING FOR OVERRIDING CAMERA LOCATION WITH RANDOM MAT4
+
+EXE+9FB1DC (DFB1DC) = camera offset mat4
+0xE29C44 holds address of vehicle state ('Test' index 0)
+notes from LP about how to parent camera to an arbitrary mat4
+0xDFB1B0 = 1;  selects the E9AA40 item 1 struct in meta cam info struct index 1 (0x04)
+0xE9AAC0 = 1;  seems to be settings for below mat4; corresponds to 0x04 in E9AA40 item 1 struct
+0xE9AAC4 = address to mat4 to parent to; corresponds to 0x08 in E9AA40 item 1 struct
+setting a custom camera like this prevents the track section visuals from loading for some reason
+
+
+CONSTANTS
+
+0xDFB040  arr	Camera Meta State struct array
+0xE9AA40  arr	Camera State struct array
+0x4B91C4  ptr	address of top of Camera State struct array, seems to never be overwritten
+0x50C038  u32	seems to be used as the index of the next unused Camera State?
+
+statics used in fn_4538D0
+0x4C3ED8  f32	camera zoom
+0x4C3EDC  f32	fog distance? (also track visual segment loading distance)
+0x4C3EE0  f32	render distance?
+
+
+META CAMERA INFO STRUCT
+- 0xDFB040 = array of structs containing meta camera info
+- seems to be 4 items long
+- 0x16C stride
+- statically-allocated
+- index 1 seems to be used to handle the actually used camera? have not seen what the others are for
+
+0x0000	u32	flags
+	@00  currently active?
+	@01
+	@02
+	@03
+	@04
+	@05
+	@06
+	@07
+	@08
+	@09
+	@10
+	@11
+	@12
+	@13
+	@14
+	@15
+	@16
+	@17
+	@18
+	@19
+	@20
+	@21
+	@22
+	@23
+	@24
+	@25
+	@26
+	@27
+	@28
+	@29
+	@30
+	@31
+0x0004	u32	index of associated Camera State struct
+0x0008
+0x000C
+0x0010
+0x0014
+0x0018
+0x001C
+0x0020
+0x0024
+0x0028
+0x002C
+0x0030  mat4x4	don't see this updating, but default values are obviously a matrix
+0x0034  ..
+0x0038  ..
+0x003C  ..
+0x0040  ..
+0x0044  ..
+0x0048  ..
+0x004C  ..
+0x0050  ..
+0x0054  ..
+0x0058  ..
+0x005C  ..
+0x0060  ..
+0x0064  ..
+0x0068  ..
+0x006C  ..
+0x0070	mat4x4	camera offset; seems to be last step in building the camera position, possibly not used for 3d audio calculations
+0x0074	..
+0x0078	..
+0x007C	..
+0x0080	..
+0x0084	..
+0x0088	..
+0x008C	..
+0x0090	..
+0x0094	..
+0x0098	..
+0x009C	..
+0x00A0	..
+0x00A4	..
+0x00A8	..
+0x00AC	..
+0x00B0  mat4x4	not sure purpose, but seems to match the previous mat4 closely
+0x00B4  ..
+0x00B8  ..
+0x00BC  ..
+0x00C0  ..
+0x00C4  ..
+0x00C8  ..
+0x00CC  ..
+0x00D0  ..
+0x00D4  ..
+0x00D8  ..
+0x00DC  ..
+0x00E0  ..
+0x00E4  ..
+0x00E8  ..
+0x00EC  ..
+0x00F0
+0x00F4
+0x00F8
+0x00FC
+0x0100
+0x0104
+0x0108
+0x010C
+0x0110
+0x0114
+0x0118
+0x011C
+0x0120
+0x0124
+0x0128
+0x012C
+0x0130
+0x0134	f32	CamZoom? see fn_483590
+0x0138	f32	??
+0x013C	f32	??
+0x0140	f32	RenderDepth
+0x0144	f32	FogAndLoadDist
+0x0148
+0x014C
+0x0150
+0x0154
+0x0158  u32	flags, not sure what for, does seem to have some kind of relation to 0x15C
+0x015C  u32	level visual flags; seems to be copied from cMan+0x2AC during race
+	0044D805 - 85 81 5C010000  - test [ecx+0000015C],eax	- billionzzz of accesses
+	0044D8C3 - 85 81 5C010000  - test [ecx+0000015C],eax
+	0044D2D0 - 85 81 5C010000  - test [ecx+0000015C],eax
+	0044D6FE - 85 81 5C010000  - test [ecx+0000015C],eax
+	0044D9E7 - 85 81 5C010000  - test [ecx+0000015C],eax
+	00431A21 - 89 81 5C010000  - mov [ecx+0000015C],eax	- once per frame, this is cMan copying the flags back into this struct below
+
+0x0160  u32	flags, not sure what for, see fn_431A10
+0x0164  u32	same as 0x15C, not sure why there are two yet
+0x0168  ptr	not sure what for
+		E28980 in index 1 item, code suggests they all always have this ptr, unconfirmed
+		this ptr seems to be a short struct containing something like mat4 data, but not only
+		fn_431B20 seems to be a setter for that struct
+		fn_44D7C0 seems to process this struct
+0x016C END
+
+fn_4318D0
+- seems to retrieve the address of the given meta cam info struct index
+- will fail if outside the range 0~3 (4 items)
+
+fn_4294E0
+- seems to check whether any of the meta camera structs is referring to the given camera state index
+
+fn_4318C0
+- seems to return the number of meta camera structs in the array (static value, probably c macro generated)
+
+
+
+E28980 STRUCT, AKA 'META CAM 168'
+- not sure how long it is, seems like there is only 1 tho
+0x14  ??	seems to be the count of something (used as max value of while loop in fn_44D7C0)
+0x18  ptr	sighted as E287E0
+0x1C  ptr	PodData address; related to 0x14
+0x20
+
+
+
+CAMERA STATE STRUCT
+- 0xE9AA40 = array of structs containing camera information
+- 0x7C stride
+- seems to be 32 items (see fn_428830)
+- statically-allocated
+- seems to be one setup individually for each scene; inrace 7, race-to-cantina 5, cantina 4
+- game resets all 32, but only sets up first 10 items, and seems to actually use at most 8
+
+0x00	u32	flags
+	@00
+	@01  active camstate, see fn_429540(@4295B7)
+	@02
+	@03
+	@04
+	@05
+	@06
+	@07
+	@08
+	@09
+	@10
+	@11
+	@12
+	@13
+	@14
+	@15
+	@16
+	@17
+	@18
+	@19
+	@20
+	@21
+	@22
+	@23
+	@24
+	@25
+	@26
+	@27
+	@28
+	@29
+	@30
+	@31
+0x04	u32	?? settings related to following mat4 ptr; based on fn_428A60; init in fn_428830
+		- seems set to 3 on normal gameplay cam, but setting to 3 on custom cam makes game crash?
+		- could be 2x u16, game seems to ref these offsets separately a lot
+		- from other notes while messing around:		
+			- setting 0x04 to 3 in cam7 raw crashes the game
+			- setting the target mat4 ptr beforehand results in no crash
+			- setting it to 4 changes the attach point slightly forward?
+			- setting it to 5 totally detaches the cam again, with no crash
+0x08	ptr	address of mat4 of camera itself; set to cMan+0x20 in fn_4490A0
+0x0C	u32	?? settings related to following mat4 ptr
+		- could be 2x u16, game seems to ref these offsets separately a lot
+0x10	ptr	address of mat4 of 'target focus'
+0x14	mat4x4	??  possibly where the final calculated camera is stored; initialized in fn_428830
+0x18	..
+0x1C	..
+0x20	..
+0x24	..
+0x28	..
+0x2C	..
+0x30	..
+0x34	..
+0x38	..
+0x3C	..
+0x40	..
+0x44	..
+0x48	..
+0x4C	..
+0x50	..end
+0x54	??	set in fn_428AA0; these 6 possibly f32
+0x58	??	set in fn_428AA0
+0x5C	??	set in fn_428AA0
+0x60	??	set in fn_428AA0
+0x64	??	set in fn_428AA0
+0x68	??	set in fn_428AA0; checked when +0x04 hi word NOT 4
+0x6C	vec3	related to XYZ, maybe a staging area; init in fn_428830
+0x70	..	
+0x74	..end	
+0x78
+0x7C END
+
+fn_428830
+- seems to be init/reset function for above array of structs
+- only called in fn_4490A0
+
+fn_4490A0
+- seems to init camera structs with relation to cMan entities, and/or just be a global camstate reset for all of them
+- only called once, during game setup sequence
+
+fn_428A60 
+- seems to setup camera mat4 in given cam struct
+
+fn_428B10 
+- seems to setup 'follow target' in given cam struct
+
+fn_428A40 
+- seems to set flags at 0x00 for given cam struct

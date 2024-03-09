@@ -78,35 +78,35 @@ char* swrText_Translate(char* text);
 
 0x4503E0 swrText_CreateEntry
 core item for adding to the text queues, all other entry fns use this
-*fn (x: u16, y: u16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8, font: i32, entry2: i32) callconv(.C) void;
+*fn (x: i16, y: i16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8, font: i32, entry2: i32) callconv(.C) void;
 
 0x450530 swrText_CreateEntry1
 core fn shorthand for making type 1 entries
-*fn (x: u16, y: u16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8) callconv(.C) void;
+*fn (x: i16, y: i16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8) callconv(.C) void;
 
 0x450560 swrText_CreateWhiteEntry1
 macro for creating unformatted, white-colored type 1 entries
-*fn (x: u16, y: u16, str: [*:0]const u8) callconv(.C) void;
+*fn (x: i16, y: i16, str: [*:0]const u8) callconv(.C) void;
 
 0x450590 swrText_CreateWhiteFontEntry1
 macro for white-colored font-selected type 1 entries
-*fn (font: i32, x: u16, y: u16, str: [*:0]const u8) callconv(.C) void;
+*fn (font: u32, x: i16, y: i16, str: [*:0]const u8) callconv(.C) void;
 
 0x4505C0 swrText_CreateEntry2
 core fn shorthand for making type 2 entries
-*fn (x: u16, y: u16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8) callconv(.C) void;
+*fn (x: i16, y: i16, r: u8, g: u8, b: u8, a: u8, str: [*:0]const u8) callconv(.C) void;
 
 0x4505F0
 macro for calling Translate with a fmt switch, before calling DrawTime3
-*fn (x: u32, y: u32, time: f32, r: u32, g: u32, b: u32, a: u32, fmt: i32) callconv(.C) void;
+*fn (x: i16, y: i16, time: f32, r: u32, g: u32, b: u32, a: u32, fmt: i32) callconv(.C) void;
 
 0x450670 swrText_DrawTime2
 formats a float as "ss.ss"/"m:ss.ss" and adds it as an unformatted type 1 item
-*fn (x: u32, y: u32, time: f32, r: u32, g: u32, b: u32, a: u32) callconv(.C) void;
+*fn (x: i16, y: i16, time: f32, r: u32, g: u32, b: u32, a: u32) callconv(.C) void;
 
 0x450760 swrText_DrawTime3
 formats a float as "ss.sss"/"m:ss.sss" and adds it as an unformatted type 1 item
-*fn (x: u32, y: u32, time: f32, r: u32, g: u32, b: u32, a: u32) callconv(.C) void;
+*fn (x: i16, y: i16, time: f32, r: u32, g: u32, b: u32, a: u32) callconv(.C) void;
 
 0x450280
 seems to be for processing type 1 text

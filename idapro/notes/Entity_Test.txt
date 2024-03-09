@@ -196,7 +196,7 @@ OFFSETS
 0x0134
 0x0138 ???  referenced in 46B670, seems race completion-related
 0x013C (POINTER) - ??? collision pointer?
-0x0140 ???  ref in 462A70, 47AB40, 471760, 479E10, 47FBB0; pointer?
+0x0140 (ptr)  ref in 462A70, 47AB40, 471760, 479E10, 47FBB0, 451A80; pointer?
 		turning related, race complete related?
 0x0144
 0x0148
