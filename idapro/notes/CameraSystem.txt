@@ -21,6 +21,10 @@ statics used in fn_4538D0
 0x4C3EDC  f32	fog distance? (also track visual segment loading distance)
 0x4C3EE0  f32	render distance?
 
+camera roll related constants
+4ACEBC 
+4ACEC4
+
 
 META CAMERA INFO STRUCT
 - 0xDFB040 = array of structs containing meta camera info

@@ -12,8 +12,8 @@ FUNCTIONS
 
 OFFSETS
 
-0x00
-0x04
+0x00	u32	Entity keyword
+0x04	u32	Entity flags
 0x08	current menu; handled by callback0x14, also updated in callback0x14
 	-1	MENU NOT SET
 	0	"Legal" (seen in 454D40)
@@ -58,48 +58,52 @@ OFFSETS
 0x38 ?? sub-scene for scene 3 (start race menu)
 0x3C	prev. value of 0x38
 0x40	an 'Elmo' entity index; not sure of usage
-0x44
-0x48
-0x4C
+0x44	vec3	?? see Unk_Hang_SetupRelated_45AB50
+0x48	..
+0x4C	..
 0x50
 0x54
 0x58
-0x5C	[4]u8	race settings
-	0x5C
-	0x5D  track
-	0x5E  circuit
-	0x5F  'main menu' menu selection index
+0x5C	u8	?? set in setup function fn_45AB50
+0x5D	u8	track
+0x5E	u8	circuit
+0x5F	u8	'main menu' menu selection index
 0x60	seems connected to +0x14; used in callback0x24
-0x64	seems connected to +0x14; used in callback0x24
-0x68	seems connected to +0x14; used in callback0x24
-0x6C	[4]u8	race settings
-	0x6C
-	0x6D
-	0x6E  mirror
-	0x6F
-0x70	[4]u8	race settings
-	0x70  used in 0x435240
-	0x71
-	0x72  no. of racers
-	0x73  selected racer
-0x74
-0x78
-0x7C
-0x80
-0x84
-0x88
-0x8C	[4]u8	race settings
-	0x8C  laps
-	0x8D
-	0x8E
-	0x8F
-0x90	[4]u8	race settings
-	0x90  AI speed
-	0x91  winnings split
-	0x92
-	0x93
-0x94
-0x98
+0x64	seems connected to +0x14; used in callback0x24; default set in fn_45BD90
+0x68	seems connected to +0x14; used in callback0x24; default set in fn_45BD90
+0x6C	u8	laps related flag? see Unk_Hang_DrawRaceResults_maybe_439CE0; default set in fn_45BD90
+0x6D	u8	default set in fn_45BD90
+0x6E	u8	mirror
+0x6F	u8	default set in fn_45BD90
+0x70	u8	used like a counter/len in fn_435240, fn_45BF20; default set in fn_45BD90
+0x71	u8
+0x72	u8	no. of racers
+0x73	[23]u8	race character ids; 0x73 = player racer
+0x74	..
+0x78	..
+0x7C	..
+0x80	..
+0x84	..
+0x88	..
+0x8A	u16?
+0x8C	u8?
+0x8D	u8?
+0x8E	u8?
+0x8F	u8	Laps
+0x90	u8	AI Speed
+0x91	u8	Winnings (tournament mode)
+0x92	u16	Fair - 1st
+0x94	u16	Fair - 2nd	
+0x96	u16	Fair - 3rd	
+0x98	u16	Fair - 4th
+0x9A	u16	Skilled - 1st
+0x9C	u16	Skilled - 2nd	
+0x9E	u16	Skilled - 3rd	
+0xA0	u16	Skilled - 4th
+0xA2	u16	Winner Takes All - 1st
+0xA4	u16	Winner Takes All - 2nd	
+0xA6	u16	Winner Takes All - 3rd	
+0xA8	u16	Winner Takes All - 4th
 0x9C
 0xA0
 0xA4

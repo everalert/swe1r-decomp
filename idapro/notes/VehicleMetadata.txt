@@ -18,3 +18,4 @@ STRUCTURE
 +0x28 (u32)		sprite index for portrait
 +0x2C (u32)		sprite index for flag
 +0x30 (u32)		'Pupp' id (pilot model)
+0x34 END

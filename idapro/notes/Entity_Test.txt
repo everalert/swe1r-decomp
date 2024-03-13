@@ -196,34 +196,37 @@ OFFSETS
 0x0134
 0x0138 ???  referenced in 46B670, seems race completion-related
 0x013C (POINTER) - ??? collision pointer?
-0x0140 (ptr)  ref in 462A70, 47AB40, 471760, 479E10, 47FBB0, 451A80; pointer?
+0x0140 (ptr)	terrain-related pointer
+		struct+0x2C = terrain flags, see fn_46FD60 for parsing stuff
+		ref in 462A70, 47AB40, 471760, 479E10, 47FBB0, 451A80; pointer?
 		turning related, race complete related?
-0x0144
-0x0148
-0x014C
+0x0144 (vec3)	?? see Unk_Test__479D40
+0x0148	..
+0x014C	..
 0x0150 (f32)  ??? Speed loss this frame, in "rendered" units; used in functions that call 47B000_DeathSpeedHandler()
-0x0154
-0x0158
-0x015C
-0x0160 (vec3)  gravity related;  ref in 4774F0, 479E10, copied into and from transform matrix Z vec3
+0x0154 (vec3)	??? see CalculateSpeed_478D80
+0x0158	..
+0x015C	..
+0x0160 (vec3)	probably dynamic down vector used in tubes? gravity related;  ref in 4774F0, 479E10, copied into and from transform matrix Z vec3
 	0x0160 (f32)  X;  'down x' from LP?
 	0x0164 (f32)  Y;  'down y' from LP?
 	0x0168 (f32)  Z;  'down z' from LP?
-0x016C (vec3)  Prev Frame Position?  ref in 47B520
+0x016C (vec3)	Prev Frame Position?  ref in 47B520
 	0x016C (f32)  X
 	0x0170 (f32)  Y
 	0x0174 (f32)  Z
-0x0178 (vec3)  Death Position;  ref in 46CF00
+0x0178 (vec3)	Death Position;  ref in 46CF00
 	0x0178 (f32)  X
 	0x017C (f32)  Y
 	0x0180 (f32)  Z 
-0x0184 (f32)  ??? seems to be vertical motion, including lift from bobbing
-0x0188 (f32)  ??? seems to be Zpos of ground under pod
-0x018C (f32)  'thrust' according to LP
-0x0190 (f32)  gravity multiplier?  according to LP docs
-0x0194 'down x' from LP?  ref in 4791D0, 4774F0, 47AB40, 477AD0; gravity related
-0x0198 'down y' from LP? ref in 4791D0, 4774F0; gravity related
-0x019C 'down z' from LP? ref in 4791D0, 4774F0; gravity related
+0x0184 (f32)	??? seems to be vertical motion, including lift from bobbing
+0x0188 (f32)	??? seems to be Zpos of ground under pod
+0x018C (f32)	'thrust' according to LP
+0x0190 (f32)	gravity multiplier?  according to LP docs
+0x0194 (vec3)  probably static UP vector used outside of tubes, see Unk_Test_HandleDistanceToGround_4774F0
+	0x0194 'down x' from LP?  ref in 4791D0, 4774F0, 47AB40, 477AD0; gravity related
+	0x0198 'down y' from LP? ref in 4791D0, 4774F0; gravity related
+	0x019C 'down z' from LP? ref in 4791D0, 4774F0; gravity related
 0x01A0 (f32)  speed
 0x01A4 (f32)  speed accel component
 		up while accelerating, down with offthrottle, behaves a bit like a counter
@@ -266,7 +269,7 @@ OFFSETS
 0x0224 ??? - ref in 46BEC0, next to maxturnrate
 0x0228
 0x022C (f32)  ??? "stat multiplier" from LP
-0x0230 ??? - referenced in 46B670, seems race completion-related
+0x0230 ??? - AI level?? referenced in 46B670, seems race completion-related
 0x0234 ??? - referenced in 46B670, seems race completion-related; used with frametime
 0x0238
 0x023C

@@ -21,6 +21,14 @@ sub_451D60
 453E00
 	seems to handle the whole stack of camera processing for inrace stuff
 
+
+CONSTANTS
+
+0x453F1B	jump table used for switching between camera mode behaviour in Unk_CMan_HandleRaceCamera_maybe_453E00
+		no 0 case (function decrements the value before feeding it into the switch)
+		space for 3 or 4 extra cases
+
+
 OFFSETS
 
 0x0000 (u32)	Entity keyword
@@ -57,7 +65,7 @@ OFFSETS
 0x0068
 0x006C (u32)	Camera animation stage/phase;  ref in 452600
 0x0070 (f32)	Camera animation timer
-0x0074 (ptr)	Meta Cam address (see CameraSystem.txt)
+0x0074 (ptr)	Meta Cam index (see CameraSystem.txt)
 0x0078 (u32)	Cam State index (see CameraSystem.txt)
 0x007C (u32)  Camera Mode
 		cycle order: 1, 4, 5, 2

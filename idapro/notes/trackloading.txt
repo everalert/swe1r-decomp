@@ -1,3 +1,7 @@
+MAX RACERS WITHOUT CRASHING = 20
+tested on mgs
+
+
 4368AC
 	- triggered when loading from track select only
 	- lots of stuff going on, looks like it could be some state setter stuff that happens before actual load
