@@ -1,0 +1,57 @@
+this document is for cheats; see Input.txt for full details on other keyboard keycodes
+
+JINN REESO & CY YUNGA
+RCtrl	N	K	(Vehicle Select) Jinn Reeso
+LCtrl	C	Y	(Vehicle Select) Cy Yunga
+pub const Vehicle_EnableJinnReeso: *fn () callconv(.C) void = @ptrFromInt(0x44B530);
+pub const Vehicle_EnableCyYunga: *fn () callconv(.C) void = @ptrFromInt(0x44B5E0);
+jinn reeso call instruction: 0x4105DD
+cy yunga call instruction: 0x410578
+when the cheat function runs
+- edits Podd idx, MAlt idx, Part id (low lod), Pupp id and the first and last names in vehicle metadata
+- edits some 3d-related values in another currently unknown struct
+	- sizeof struct 108 (0x6C) or 27 * u32/f32 values
+	- range likely 4C7088..4C7A3C
+	- known AOS start points
+		- fn_471760 : 4C70C4, 4C70DC, 4C70E8 -> earliest possible start = ..7C
+		- fn_46F0E0 : 4C70AC .. 4C70C0
+		- fn_470AE0 : 4C7088, 4C7094 -> latest possible end = ..F4
+		- start likely 4C7088, values immediately before seem to have totally unrelated usage/pattern
+		- meaning whole AOS ends at 4C7A3C?
+- edits at idx 8 and 22 for jinn(mars) and cy(bullseye) respectively
+
+jinn reeso:
+VehicleMetadata = 0x4C28A0
+VehicleMetadata(Podd)		16 -> 299
+VehicleMetadata(MAlt)		18 -> 298
+VehicleMetadata(PartLo)		263 -> 302
+VehicleMetadata(Pupp)		92 -> 304
+VehicleMetadata(PtrFirst)	4C397C -> 4C3B14
+VehicleMetadata(PtrLast)	4C3964 -> 4C3B0C
+MysteryStruct = 0x4C73E8
+MysteryStruct+0x0C	0x40A8A3D7 -> 0x408DC28F;
+MysteryStruct+0x24	0x3FA147AE -> 0x3FA147AE;
+MysteryStruct+0x28	0x4043D70A -> 0x3E75C28F;
+MysteryStruct+0x2C	0xBF3D70A4 -> 0xBEEB851F;
+MysteryStruct+0x30	0xC0147AE1 -> 0x3E851EB8;
+MysteryStruct+0x34	0xC06F5C29 -> 0xC068F5C3;
+MysteryStruct+0x38	0x3EF0A3D7 -> 0xBE9EB852;
+MysteryStruct+0x3C	0x401851EC -> 0x400E147B;
+MysteryStruct+0x40	0x00000000 -> 0x4031EB85;
+MysteryStruct+0x44	0x00000000 -> 0x00000000;
+
+cy yunga:
+VehicleMetadata = 0x4C2B78
+VehicleMetadata(Podd)		46 -> 301
+VehicleMetadata(MAlt)		45 -> 300
+VehicleMetadata(PartLo)		277 -> 303
+VehicleMetadata(Pupp)		108 -> 305
+VehicleMetadata(PtrFirst)	4C36C4 -> 4C3B24
+VehicleMetadata(PtrLast)	4C36A8 -> 4C3B1C
+MysteryStruct = 0x4C79D0
+MysteryStruct+0x30	0x00000000 -> 0xBDA3D70A;
+MysteryStruct+0x34	0x3F7AE148 -> 0xBFD47AE1;
+MysteryStruct+0x38	0x3F6E147B -> 0x4009999A;
+MysteryStruct+0x3C	0x3F851EB8 -> 0x3F851EB8;
+MysteryStruct+0x40	0x3F8A3D71 -> 0x40051EB8;
+MysteryStruct+0x44	0x3DCCCCCD -> 0xBF8A3D71;

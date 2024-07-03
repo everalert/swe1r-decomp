@@ -1,0 +1,44 @@
+MAlt (tlAM) - at the head of ody's loaded 3d data, apparently the tag that indicates the player-model of a pod
+Trak (karT)
+Anim
+Part - tag at the head that indicates AI model LOD
+
+E98200 - 3d queue array??
+E25E00	[8]vec3	tusken raider shot translations
+4C7BC0	[8]f32	tusken raider shot timers
+
+47CE60 - map trigger handler function
+
+Terrain Flags
+@00	ZON
+@01	ZOFF
+@02	FAST	+200 terrain speed
+@03	SLOW	0.75x terrain speed; cancels zon state
+@04	SWST	'slowest'; 0.1x terrain speed
+@05	SLIP	ice; 0.2x traction
+@06	DUST
+@07	SNOW
+@08	WET
+@09	RUFF
+@10	SWMP
+@11	NSNW
+@12	MIRR
+@13	LAVA
+@14	FALL
+@15	SOFT
+@16	NRSP
+@17	FLAT
+@18
+@19
+@20
+@21
+@22
+@23
+@24
+@25
+@26
+@27
+@28
+@29	SIDE
+@30
+@31

@@ -3,12 +3,37 @@ gameplay WILL be affected, but menuing etc. WILL NOT be affected
 
 CONSTANTS
 
-0xEC8810 - u8 array of finalized "digital" inputs; apparently 15 items, see code at 0x405883
-0xEC8830 - f32 array of finalized/combined "analog" inputs; see code at 0x405791
+TODO: reorganize
 
-FUNCTIONS
+this block gets ref'd directly by the Test input handling code
+0xE98E80    [4]f32	analog y axis, one for each player slot
+			HandleRaceInputs_46BEC0 suggests this and the following are only 2 players, plus 0xE98E88 etc. for 2 more
+0xE98E90    [4]u32	input bitfield (raw), one for each player slot; what each bit for these represents currently unknown
+0xE98EA0    [4]f32	analog x axis, one for each player slot
+0xE98EB0    [4]u32	input bitfield (just on), one for each player slot
+0xE98EC0    [4]u32	input bitfield (just off), one for each player slot
+0xEC8840    [15]f32	array of inputs corresponding to ButtonInput
 
-fn_404DD0 - fn ProcessInput() void
+following seems similar to above, but for "local" players (splitscreen)
+0x50C908    [4]u32	input bitfield (raw), one for each player slot
+0x50C918    [4]u32	input bitfield (just on), one for each player slot
+0x50C970    [4]i32	axis x input (for menus?), -1/0/1, one for each player slot
+0x50C980    [4]i32	axis y input (for menus?), -1/0/1, one for each player slot
+
+0xEC8810 - u8 array of finalized digital inputs; apparently 15 items, see code at 0x405883
+0xEC8830 - f32 array of finalized/combined analog inputs; see code at 0x405791
+0xEC88E0 - 0xFF-byte array on input state, made by calling fn_485880 (ReadKey) on keycodes <256
+0x50D568 - 0xF0-byte array of raw axis input data
+0x50E028 - 0x840-byte array of input read timestamps (durations?)
+0x50E868 - 0x840-byte array of input state, seems to be On for buttons
+0x50F668 - 0x840-byte array of input state, seems to be JustOn for buttons
+	+0x110 seems to be joysticks section
+	+0x1F4 seems to be mouse section
+above two arrays may be structs?
+see 'Input Table' below
+0x4D6B3C - active joystick guid (index?), used to index joysticks in raw data correctly
+	i.e. yes, there is space allocated for several joysticks, even though only one is used
+
 
 0xEC8830 - [4]f32 - axis-type finalized/merged inputs (see AxisInput below for order)
 0xEC8810 - [15]u8 - button-type finalized/merged inputs (see ButtonInput below for order)
@@ -25,6 +50,14 @@ fn_404DD0 - fn ProcessInput() void
 
 - yes, the slots are repeated for all devices even though they obviously don't all have enough buttons/mappings
 - these arrays only affect race controls, not menus etc.
+
+
+FUNCTIONS
+
+fn_404DD0 - fn ProcessInput() void
+fn_45A460 - fn Hang_PollInputForUI(player:i32) void
+fn_45A7F0 - fn Hang_UpdateInputForUI(player:u32, bButtonOn:u32, value:u32) void
+		- if bButtonOn==FALSE, set bits from value off, else
 
 pub const AxisInput = enum(u8) {
     Thrust,
@@ -50,3 +83,602 @@ pub const ButtonInput = enum(u8) {
     Unk14,
     Unk15,
 };
+
+
+Input Codes
+
+Shift	F4	4		(Watto's Shop) +1000 Truguts
+Alt	H			? seems to show trugut cheat hint, not sure other conds to show
+Ctrl	F10			? related to invincibility, seems to need debug menu enabled to work
+Ctrl	F11			toggle that works in conjunction with -snafu, shows fps
+I	F	L	Y	? possibly debug related, sets flag that is ref'd in Unk_Test_TerrainHandler_476EA0
+RCtrl	N	K		(Vehicle Select) Jinn Reeso
+LCtrl	C	Y		(Vehicle Select) Cy Yunga
+RCtrl	LAlt			(Track Detail) Toggle Mirror mode, set cantina mirroring OFF
+Ctrl	LAlt	RAlt		(Track Detail) Toggle Mirror mode, set cantina mirroring ON
+Num*	T			Speedup cheat
+F12				Screenshot
+F5				taunt (cycle)
+F6				taunt (random)
+F7				show chat prompt
+Ctrl	M			Toggle Mouse
+Ctrl	J			Toggle Joystick
+Ctrl	F			Toggle Force Feedback
+Ctrl	Q			(Multiplayer) ??
+ScrLk	Home			Unlock all pods and tracks cheat
+
+
+INPUT BITFIELD (non-local; not sure if local is same)
+- semantic ones might be wrong, some stuff only updates in menus or w/e
+	@00	Up/?accel
+	@01	Dn/?brake
+	@02	camera cycle
+	@03	look back
+	@04	A/?tilt left
+	@05	D/?tilt right
+	@06
+	@07
+	@08
+	@09	esc/?pause
+	@10
+	@11
+	@12
+	@13
+	@14	axis y up
+	@15	axis y down
+	@16	axis x left
+	@17	axis x right
+	@18	axis x neutral
+	@19	axis y neutral
+	@20
+	@21
+	@22
+	@23
+	@24
+	@25
+	@26
+	@27
+	@28
+	@29
+	@30
+	@31
+
+
+
+KEYBOARD INPUT TABLE
+by index of arrays at 0x50E028, 0x50E868, 0x50F668
+keyboard inputs seem to be indexed via ascii scancodes
+  with 0x80 added for 'escaped' codes
+  e.g. 0x1D=LCtrl, 0x9D=RCtrl
+  apparently the indices are dinput scancodes, see:
+    https://gist.github.com/tracend/912308
+
+0x000  000	
+0x001  001	Esc
+0x002  002	1
+0x003  003	2
+0x004  004	3
+0x005  005	4
+0x006  006	5
+0x007  007	6
+0x008  008	7
+0x009  009	8
+0x00A  010	9
+0x00B  011	0
+0x00C  012	-
+0x00D  013	+
+0x00E  014	Bksp
+0x00F  015	Tab
+0x010  016	Q
+0x011  017	W
+0x012  018	E
+0x013  019	R
+0x014  020	T
+0x015  021	Y
+0x016  022	U
+0x017  023	I
+0x018  024	O
+0x019  025	P
+0x01A  026	[
+0x01B  027	]
+0x01C  028	Enter
+0x01D  029	LCtrl
+0x01E  030	A
+0x01F  031	S
+0x020  032	D
+0x021  033	F
+0x022  034	G
+0x023  035	H
+0x024  036	J
+0x025  037	K
+0x026  038	L
+0x027  039	:
+0x028  040	"
+0x029  041	~
+0x02A  042	LShift
+0x02B  043	?? \
+0x02C  044	Z
+0x02D  045	X
+0x02E  046	C
+0x02F  047	V
+0x030  048	B
+0x031  049	N
+0x032  050	M
+0x033  051	,
+0x034  052	.
+0x035  053	/
+0x036  054	RShift
+0x037  055	Num*
+0x038  056	LAlt
+0x039  057	Space
+0x03A  058	CapsLock
+0x03B  059	F1
+0x03C  060	F2
+0x03D  061	F3
+0x03E  062	F4
+0x03F  063	F5
+0x040  064	F6
+0x041  065	F7
+0x042  066	F8
+0x043  067	F9
+0x044  068	F10
+0x045  069	NumLock
+0x046  070	ScrollLock
+0x047  071	?? Num7
+0x048  072	?? Num8
+0x049  073	?? Num9
+0x04A  074	?? Num-
+0x04B  075	?? Num4
+0x04C  076	?? Num5
+0x04D  077	?? Num6
+0x04E  078	?? Num+
+0x04F  079	?? Num1
+0x050  080	?? Num2
+0x051  081	?? Num3
+0x052  082	?? Num0
+0x053  083	?? Num.
+0x054  084	?? AltSysRq
+0x055  085	
+0x056  086	
+0x057  087	F11
+0x058  088	F12
+0x059  089	
+0x05A  090	
+0x05B  091	
+0x05C  092	
+0x05D  093	
+0x05E  094	
+0x05F  095	
+0x060  096	
+0x061  097	
+0x062  098	
+0x063  099	
+0x064  100	
+0x065  101	
+0x066  102	
+0x067  103	
+0x068  104	
+0x069  105	
+0x06A  106	
+0x06B  107	
+0x06C  108	
+0x06D  109	
+0x06E  110	
+0x06F  111	
+0x070  112	
+0x071  113	
+0x072  114	
+0x073  115	
+0x074  116	
+0x075  117	
+0x076  118	
+0x077  119	
+0x078  120	
+0x079  121	
+0x07A  122	
+0x07B  123	
+0x07C  124	
+0x07D  125	
+0x07E  126	
+0x07F  127	
+0x080  128	
+0x081  129	
+0x082  130	
+0x083  131	
+0x084  132	
+0x085  133	
+0x086  134	
+0x087  135	
+0x088  136	
+0x089  137	
+0x08A  138	
+0x08B  139	
+0x08C  140	
+0x08D  141	
+0x08E  142	
+0x08F  143	
+0x090  144	
+0x091  145	
+0x092  146	
+0x093  147	
+0x094  148	
+0x095  149	
+0x096  150	
+0x097  151	
+0x098  152	
+0x099  153	
+0x09A  154	
+0x09B  155	
+0x09C  156	NumEnter
+0x09D  157	RCtrl
+0x09E  158	
+0x09F  159	
+0x0A0  160	
+0x0A1  161	
+0x0A2  162	
+0x0A3  163	
+0x0A4  164	
+0x0A5  165	
+0x0A6  166	
+0x0A7  167	
+0x0A8  168	
+0x0A9  169	
+0x0AA  170	'fake' LShift
+0x0AB  171	
+0x0AC  172	
+0x0AD  173	
+0x0AE  174	
+0x0AF  175	
+0x0B0  176	
+0x0B1  177	
+0x0B2  178	
+0x0B3  179	
+0x0B4  180	
+0x0B5  181	Num/
+0x0B6  182	'fake' RShift
+0x0B7  183	Ctrl-PrtScn
+0x0B8  184	RAlt
+0x0B9  185	
+0x0BA  186	
+0x0BB  187	
+0x0BC  188	
+0x0BD  189	
+0x0BE  190	
+0x0BF  191	
+0x0C0  192	
+0x0C1  193	
+0x0C2  194	
+0x0C3  195	
+0x0C4  196	
+0x0C5  197	
+0x0C6  198	Ctrl-Break
+0x0C7  199	Home
+0x0C8  200	'Grey' Up
+0x0C9  201	'Grey' PgUp
+0x0CA  202	
+0x0CB  203	'Grey' Left
+0x0CC  204	
+0x0CD  205	'Grey' Right
+0x0CE  206	
+0x0CF  207	'Grey' End
+0x0D0  208	'Grey' Down
+0x0D1  209	'Grey' PgDn
+0x0D2  210	'Grey' Insert
+0x0D3  211	'Grey' Delete
+0x0D4  212	
+0x0D5  213	
+0x0D6  214	
+0x0D7  215	
+0x0D8  216	
+0x0D9  217	
+0x0DA  218	
+0x0DB  219	
+0x0DC  220	
+0x0DD  221	
+0x0DE  222	
+0x0DF  223	
+0x0E0  224	
+0x0E1  225	
+0x0E2  226	
+0x0E3  227	
+0x0E4  228	
+0x0E5  229	
+0x0E6  230	
+0x0E7  231	
+0x0E8  232	
+0x0E9  233	
+0x0EA  234	
+0x0EB  235	
+0x0EC  236	
+0x0ED  237	
+0x0EE  238	
+0x0EF  239	
+0x0F0  240	
+0x0F1  241	
+0x0F2  242	
+0x0F3  243	
+0x0F4  244	
+0x0F5  245	
+0x0F6  246	
+0x0F7  247	
+0x0F8  248	
+0x0F9  249	
+0x0FA  250	
+0x0FB  251	
+0x0FC  252	
+0x0FD  253	
+0x0FE  254	
+0x0FF  255	
+0x100  256	
+0x101  257	?? fn_407F80
+0x102  258	
+0x103  259	
+0x104  260	
+0x105  261	
+0x106  262	
+0x107  263	
+0x108  264	
+0x109  265	
+0x10A  266	
+0x10B  267	
+0x10C  268	
+0x10D  269	
+0x10E  270	
+0x10F  271	
+0x110  272	
+0x111  273	
+0x112  274	
+0x113  275	
+0x114  276	
+0x115  277	
+0x116  278	
+0x117  279	
+0x118  280	
+0x119  281	
+0x11A  282	
+0x11B  283	
+0x11C  284	
+0x11D  285	
+0x11E  286	
+0x11F  287	
+0x120  288	
+0x121  289	
+0x122  290	
+0x123  291	
+0x124  292	
+0x125  293	
+0x126  294	
+0x127  295	
+0x128  296	
+0x129  297	
+0x12A  298	
+0x12B  299	
+0x12C  300	
+0x12D  301	
+0x12E  302	
+0x12F  303	
+0x130  304	
+0x131  305	
+0x132  306	
+0x133  307	
+0x134  308	
+0x135  309	
+0x136  310	
+0x137  311	
+0x138  312	
+0x139  313	
+0x13A  314	
+0x13B  315	
+0x13C  316	
+0x13D  317	
+0x13E  318	
+0x13F  319	
+0x140  320	
+0x141  321	
+0x142  322	
+0x143  323	
+0x144  324	
+0x145  325	
+0x146  326	
+0x147  327	
+0x148  328	
+0x149  329	
+0x14A  330	
+0x14B  331	
+0x14C  332	
+0x14D  333	
+0x14E  334	
+0x14F  335	
+0x150  336	
+0x151  337	
+0x152  338	
+0x153  339	
+0x154  340	
+0x155  341	
+0x156  342	
+0x157  343	
+0x158  344	
+0x159  345	
+0x15A  346	
+0x15B  347	
+0x15C  348	
+0x15D  349	
+0x15E  350	
+0x15F  351	
+0x160  352	
+0x161  353	
+0x162  354	
+0x163  355	
+0x164  356	
+0x165  357	
+0x166  358	
+0x167  359	
+0x168  360	
+0x169  361	
+0x16A  362	
+0x16B  363	
+0x16C  364	
+0x16D  365	
+0x16E  366	
+0x16F  367	
+0x170  368	
+0x171  369	
+0x172  370	
+0x173  371	
+0x174  372	
+0x175  373	
+0x176  374	
+0x177  375	
+0x178  376	
+0x179  377	
+0x17A  378	
+0x17B  379	
+0x17C  380	
+0x17D  381	
+0x17E  382	
+0x17F  383	
+0x180  384	
+0x181  385	
+0x182  386	
+0x183  387	
+0x184  388	
+0x185  389	
+0x186  390	
+0x187  391	
+0x188  392	
+0x189  393	
+0x18A  394	
+0x18B  395	
+0x18C  396	
+0x18D  397	
+0x18E  398	
+0x18F  399	
+0x190  400	
+0x191  401	
+0x192  402	
+0x193  403	
+0x194  404	
+0x195  405	
+0x196  406	
+0x197  407	
+0x198  408	
+0x199  409	
+0x19A  410	
+0x19B  411	
+0x19C  412	
+0x19D  413	
+0x19E  414	
+0x19F  415	
+0x1A0  416	
+0x1A1  417	
+0x1A2  418	
+0x1A3  419	
+0x1A4  420	
+0x1A5  421	
+0x1A6  422	
+0x1A7  423	
+0x1A8  424	
+0x1A9  425	
+0x1AA  426	
+0x1AB  427	
+0x1AC  428	
+0x1AD  429	
+0x1AE  430	
+0x1AF  431	
+0x1B0  432	
+0x1B1  433	
+0x1B2  434	
+0x1B3  435	
+0x1B4  436	
+0x1B5  437	
+0x1B6  438	
+0x1B7  439	
+0x1B8  440	
+0x1B9  441	
+0x1BA  442	
+0x1BB  443	
+0x1BC  444	
+0x1BD  445	
+0x1BE  446	
+0x1BF  447	
+0x1C0  448	
+0x1C1  449	
+0x1C2  450	
+0x1C3  451	
+0x1C4  452	
+0x1C5  453	
+0x1C6  454	
+0x1C7  455	
+0x1C8  456	
+0x1C9  457	
+0x1CA  458	
+0x1CB  459	
+0x1CC  460	
+0x1CD  461	
+0x1CE  462	
+0x1CF  463	
+0x1D0  464	
+0x1D1  465	
+0x1D2  466	
+0x1D3  467	
+0x1D4  468	
+0x1D5  469	
+0x1D6  470	
+0x1D7  471	
+0x1D8  472	
+0x1D9  473	
+0x1DA  474	
+0x1DB  475	
+0x1DC  476	
+0x1DD  477	
+0x1DE  478	
+0x1DF  479	
+0x1E0  480	
+0x1E1  481	
+0x1E2  482	
+0x1E3  483	
+0x1E4  484	
+0x1E5  485	
+0x1E6  486	
+0x1E7  487	
+0x1E8  488	
+0x1E9  489	
+0x1EA  490	
+0x1EB  491	
+0x1EC  492	
+0x1ED  493	
+0x1EE  494	
+0x1EF  495	
+0x1F0  496	
+0x1F1  497	
+0x1F2  498	
+0x1F3  499	
+0x1F4  500	
+0x1F5  501	
+0x1F6  502	
+0x1F7  503	
+0x1F8  504	
+0x1F9  505	
+0x1FA  506	
+0x1FB  507	
+0x1FC  508	
+0x1FD  509	
+0x1FE  510	
+0x1FF  511	
+0x200  512	?? in several functions
+0x201  513	?? fn_407F80
+0x202  514	
+0x203  515	
+0x204  516	
+0x205  517	
+0x206  518	
+0x207  519	
+0x208  520	
+0x209  521	
+0x20A  522	
+0x20B  523	
+0x20C  524	
+0x20D  525	
+0x20E  526	
+0x20F  527	
+0x210 END

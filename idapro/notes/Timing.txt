@@ -1,0 +1,37 @@
+FUNCTIONS
+
+void __cdecl Timing_Tick_480540()
+void __cdecl Timing_SetStopped_4804B0(int bStop)
+void __cdecl Timing_SetFixedFrametime_480480(double frametime)
+
+fixed timestep enabled via keycode (Num*+T) - see fn_4104F0
+- automatically disabled when loading a track
+- i.e. must enable after loading the race you want to use it in
+
+
+CONSTANTS
+
+Timing_Timestamp_50CB60
+Timing_Stopped_50CB64
+Timing_FixedStep_50CB68
+Timing_FixedFrametime_f64_50CB70
+
+Timing_FrameCount_E22A30
+Timing_TotalTime_f64_E22A38
+Timing_Frametime_f64_E22A40
+Timing_FrametimeRaw_f64_E22A48
+
+4ADF80	f64	"frametime factor"
+4C8174	f32	sithControl_fps_sec
+4C8178	f32	sithControl_fps_ms
+
+frametime is unrestricted except for the following (min 0.001 or 1000fps, due to OS timestamp resolution)
+4ADF88	f64	max frametime during normal timing; 0x3FB99999A0000000 (~0.100 or 10fps)
+4805B0	f64	as above, but the value used in the instruction to "fix" slow frames
+4805A6		.. second half of above (split across two instructions)
+4ADF88	f64	min frametime comparison value; 0x0000000000000000 (~0.000)
+480614	f64	min frametime, used when "frametime" = 0.0; 0x3F60624DE0000001 (~0.002 or 500fps)
+		frametime = 0 when real time delta <1ms, or when timing stopped (tabbed out or cutscene)
+48060A		.. second half of above (split across two instructions)
+4804E3	f64	frametime used for fixed timestep; 0x3FB1111120000000 (~0.066 or 15fps)
+4804D9		.. second half of above (split across two instructions)

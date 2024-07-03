@@ -1,0 +1,15 @@
+found at 0x4BFEF0, ordered by track index
+
+STRUCTURE
+0x0C-byte struct
+0x00	u8	?? index in planet
+0x01	u8	?? planet
+0x02	u8	?? track favorite? see fn_45BAB0
+0x04
+0x08
+0x0C END
+
+
+FUNCTIONS
+
+0x45BAB0	?? returns index of Hang->RaceCharacters that matches 0x02

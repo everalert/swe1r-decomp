@@ -1,7 +1,4 @@
-Not sure exactly what this is yet, but seems to be some kind of system for dynamically handling different object types. Referring to it as an entity system for now.
-
-non-obvious todos
-	- figure out functional labels for callback functions
+Essentially an interface for homogenously calling functionality on different types of entities/game logic
 
 
 CONSTANTS
@@ -31,66 +28,70 @@ void 450A30()
 450B30(const char* id, int index)
 	seems to derive a pointer offset from an entity id and index
 
+0x450850 - Entity_InitAll
+- fn (magic: i32) void
+- resets entity headers of all entities of type magic
+
+0x450CE0 - Entity_InitEntityArray
+- fn (magic: i32, count: i32, buffer: *anyopaque) i32
+- assigns number of entities and address of entity array memory to manager of given type
+- returns array size
+
+0x447300 - Entity_InitEntityArrayAndLoad
+- fn (magic: i32, count: i32) void
+- allocates memory to entities for given type and count, then initializes the entities and calls Load event on them
+
 
 ENTITY DATA STRUCT
 0x28 length
 +0x00 (u32)  entity type id
-+0x04 ???  used in 450DB0 as arg to 450C00 -> determines whether func 0x24 runs
+0x04	u16	default? entity header flags (fn_450850); used in 450DB0 as arg to 450C00 -> determines whether func 0x24 runs
+0x06	??
 +0x08 (u32)  entity count
 +0x0C (u32)  entity stride, e.g. 'Test' = 0x1F28 (vehicle state size)
 +0x10 (ptr)  entity array address
 +0x14 (ptr)  void funcptr(void* pEntity)
-		seems to act like a 'handle current state' semantic role
-		Hang uses it to call functions that actually do draw calls
-+0x18 (ptr)  void funcptr(void* pEntity), only Test has one (47AB40; vehicle orientation related)
-+0x1C (ptr)  void funcptr(void* pEntity), seems to be for 'big' updates
++0x18 (ptr)  void funcptr(void* pEntity)
++0x1C (ptr)  void funcptr(void* pEntity)
 +0x20 (ptr)  void funcptr(void* pEntity)
-+0x24 (ptr)  .. funcptr(void* pEntity, ...);  ref in 450C00
-		takes a 4char keyword and a pointer to arbitrary data as addtl args? not confirmed
-			ok the assembly straight up assumes that the data will be on the stack, no arg3
-			maybe it was actually an arg in the source that got optimized out?
-		seems to be used for one-off calls to specific functionality, like an event system
-		some funcs use this for memory management/setup stuff
-		cMan uses it for setting state, e.g. responding to camera change keypresses
-		Hang uses it to update which menu to draw
-		seems to be more like a general update/prep for next frame semantic role
+  - functions 1-4 triggered once per frame in early engine update
+  - all functions ran in sequence, and grouped by stage
+  - e.g. all 0x14 functions ran on all entities, then all 0x18 functions ran on all entities, etc.
++0x24 (ptr)  void funcptr(void* pEntity, keyword: *u32, u32 arg3);  ref in 450C00
+  - function 5 is used to handle individual events by passing in a magic word
+  - both global ('Aloc', ..) and type-specific ('Shak', ..) events
+  - arg2 = ptr to event payload, head of payload is always u32 event magic ('Shak', etc.)
+    - e.g. Jdge uses this to assume you're pointing to somewhere in the Jdge struct and offset from there
+    - e.g. cMan uses dedicated struct to pass in camera shake params
+  - arg3 seems to just be the same as arg2 (batch event callers just place the payload ptr in both)
+    - TODO: check if there is actually an arg3 or just decomp error
 
 
 ENTITY FLAGS
+update: first 2 bytes (bits 0..15) actually seems to be index of PodData struct, at least in Test entities
 Seems to be used to control execution flow of entity-related meta functions
 Found at +0x04 on all entity objects
-	0<<00  ???  sometimes on for Test entities, possibly AI only
-	0<<01  ???	sometimes on for Test entities, possibly only when AI in race
-	0<<02
-	0<<03
-	0<<04
-	0<<05
-	0<<06
-	0<<07
-	0<<08
-	0<<09
-	0<<10
-	0<<11
-	0<<12
-	0<<13
-	0<<14
-	0<<15
-	0<<16  ???	sometimes on for Test entities
-	0<<17
-	0<<18
-	0<<19
-	0<<20  ???	sometimes on for Test entities
-	0<<21  ???	sometimes on for Test entities
-	0<<22
-	0<<23
-	0<<24  ???	ref in 4509B0, seems to prevent 0x1C running if on
-	0<<25
-	0<<26
-	0<<27
-	0<<28  ???	ref in 4509B0, seems to prevent 0x1C running if on
-	0<<29
-	0<<30
-	0<<31
+	0..15 is not flags; i16 index of current entity
+	@16  ???	sometimes on for Test entities
+	@17
+	@18
+	@19
+	@20  ???	sometimes on for Test entities
+	@21  ???	sometimes on for Test entities
+	@22
+	@23
+	@24	?? Queue 'Free'; fn_4509B0, prevent 0x1C if on; fn_450E30, prevent 0x24 'Free' if off
+		seems to indicate generally that the entity is 'available', see fn_450D20
+	@25
+	@26
+	@27
+	@28  ???	seems to indicate 'Slep' status, see 
+			fn_4509B0, prevent 0x1C if on
+			fn_450E30, turned on if 0x24 'Free' runs
+			fn_454A30 scen0x24, turned on if 'Slep' runs, and off if 'Wake' runs
+	@29
+	@30
+	@31
 
 
 ENTITY NOTES
@@ -104,24 +105,31 @@ General notes
 	- meaning engine state is processed first, and cMan (camera?) last
 
 'Test'
-	- related to the enginedata
+- actual state of pods used in the race simulation
 
 'Toss'
+- dust trail pieces
 
 'Trig'
+- terrain/surface tag handling
 
 'Hang'
-	- seen this used in context of watto's shop menus
-	- does the calls for drawing menus (not sure if it also does other stuff besides managing menus)
+- 'manager' for the non-race areas of the game
+- watto's shop, hangar, etc.
+- drawing menus
 
 'Jdge'
-	- seems to handle things like lap completion
+- 'manager' for the in-race part of the game
+- handle non-simulation aspects of the race logic, e.g. lap completion
 
 'Scen'
+- seems to not actually be used on the pc version
+- is also magic word for a model header/type, seems to correspond to cutscenes, possibly only used on console?
 
 'Elmo'
 
 'Smok'
+- instances of flame effects (death explosion, engine fire, flamethrower)
 
 'cMan'
-	- seems to handle things like camera and fog
+- camera positioning, draw distance, fog, etc.

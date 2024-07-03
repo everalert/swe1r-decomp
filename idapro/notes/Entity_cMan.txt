@@ -31,43 +31,22 @@ CONSTANTS
 
 OFFSETS
 
-0x0000 (u32)	Entity keyword
-0x0004 (u32)	Entity flags
+0x0000 Entity Header
 0x0008
 0x000C
 0x0010
 0x0014
 0x0018
 0x001C
-0x0020 (mat4)  Camera Transformation Matrix;  constant (EXE+A9ADAC) points here
-	0x0020 (vec4)  X
-	    0x0020 (f32)  Xx
-	    0x0024 (f32)  Xy
-	    0x0028 (f32)  Xz
-		0x002C (f32)  0
-	0x0030 (vec4)  Y
-		0x0030 (f32)  Yx
-		0x0034 (f32)  Yy
-		0x0038 (f32)  Yz
-		0x003C (f32)  0
-	0x0040 (vec4)  Z
-		0x0040 (f32)  Zx
-		0x0044 (f32)  Zy
-		0x0048 (f32)  Zz
-		0x004C (f32)  0
-	0x0050 (vec4)  T
-		0x0050 (f32)  Xpos 
-		0x0054 (f32)  Ypos
-		0x0058 (f32)  Zpos
-		0x005C (f32)  1
+0x0020	mat4	Camera Transformation Matrix;  constant (EXE+A9ADAC) points here
 0x0060
 0x0064
 0x0068
-0x006C (u32)	Camera animation stage/phase;  ref in 452600
-0x0070 (f32)	Camera animation timer
-0x0074 (ptr)	Meta Cam index (see CameraSystem.txt)
-0x0078 (u32)	Cam State index (see CameraSystem.txt)
-0x007C (u32)  Camera Mode
+0x006C	u32	Camera animation stage/phase;  ref in 452600
+0x0070	f32	Camera animation timer
+0x0074	ptr	Meta Cam index (see CameraSystem.txt)
+0x0078	u32	Cam State index (see CameraSystem.txt)
+0x007C	u32	Camera Mode
 		cycle order: 1, 4, 5, 2
 		1 = normal
 		2 = far
@@ -80,87 +59,27 @@ OFFSETS
 		no other values have any logic attached
 		seems to have a different set of logic for post-race cams?
 		ref in 451D60, set from argument
-0x0080 (u32)  Respawn camera mode;  respawn cam bug = because this not updated with F1-F4
+0x0080	u32	Respawn camera mode;  respawn cam bug = because this not updated with F1-F4
 		ref in 451EC0, written into 0x7C while checking if 1 or 2 to run 451D60
-0x0084 ??? ref in 4533A0, possibly mat4x3, used in conjunction with 0x0B4
-0x0088 ??? see above
-0x008C ??? see above
-0x0090
-0x0094
-0x0098
-0x009C
-0x00A0
-0x00A4
-0x00A8
-0x00AC
-0x00B0
-0x00B4 (mat4)  ???
-	0x00B4
-		0x00B4
-		0x00B8
-		0x00BC
-		0x00C0
-	0x00C4
-		0x00C4
-		0x00C8
-		0x00CC
-		0x00D0
-	0x00D4
-		0x00D4
-		0x00D8
-		0x00DC
-		0x00E0
-	0x00E4
-		0x00E4
-		0x00E8
-		0x00EC
-		0x00F0
-0x00F4 (ptr)  address of 'Test' entity;  the thing being followed?
+0x0084	LapComp struct
+0x00B4	mat4	nearby spline point transform
+0x00F4	ptr	address of 'Test' entity;  the thing being followed?
 0x00F8
 0x00FC
 0x0100
 0x0104
-0x0108 (mat4)  camera focus?  also (EXE+A9ADB4) points here
-	0x0108
-		0x0108
-		0x010C
-		0x0110
-		0x0114
-	0x0118
-		0x0118
-		0x011C
-		0x0120
-		0x0124
-	0x0128
-		0x0128
-		0x012C
-		0x0130
-		0x0134
-	0x0138
-		0x0138
-		0x013C
-		0x0140
-		0x0144
-0x0148 ??? ref in CManCallback0x24_4543F0
+0x0108	mat4	camera focus?  also (EXE+A9ADB4) points here
+0x0148	vec3	ref in CManCallback0x24_4543F0, HandleDeathCamera_452600
 0x014C
 0x0150
 0x0154
 0x0158
-0x015C ??? seems to be used as a staging vec3, later written to 0x108 Txyz in 452600
-0x0160 ??? see above
-0x0164 ??? see above
-0x0168
-0x016C
-0x0170
-0x0174
-0x0178
-0x017C
-0x0180
-0x0184
-0x0188
-0x018C ??? seems to be used as a staging vec3, later written to 0x020 Txyz in 452600
-0x0190 ??? see above
-0x0194 ??? see above
+0x015C	vec3	?? vec3 in Deth event payload written here
+		seems to be used as a staging vec3, later written to 0x108 Txyz in HandleDeathCamera_452600
+0x0168	vec3	?? see HandleDeathCamera_452600
+0x0174	vec3?	?? probable vec3 in Deth event payload written here
+0x0180	vec3?	?? probable vec3 in Deth event payload written here
+0x018C	vec3	?? seems to be used as a staging vec3, later written to 0x020 Txyz in HandleDeathCamera_452600
 0x0198
 0x019C
 0x01A0
@@ -168,150 +87,79 @@ OFFSETS
 0x01A8
 0x01AC
 0x01B0
-0x01B4 ??? 0x30-long memcpy from Engine state 0xAC in 452600, possibly related to spline/progress
-0x01B8 ??? see above
-0x01BC ??? see above
-0x01C0 ??? see above
-0x01C4 ??? see above
-0x01C8 ??? see above
-0x01CC ??? see above
-0x01D0 ??? see above
-0x01D4 ??? see above
-0x01D8 ??? see above
-0x01DC ??? see above
-0x01E0 ??? see above
-0x01E4 (mat4)  ???
-	0x01E4
-		0x01E4
-		0x01E8
-		0x01EC
-		0x01F0
-	0x01F4
-		0x01F4
-		0x01F8
-		0x01FC
-		0x0200
-	0x0204
-		0x0204
-		0x0208
-		0x020C
-		0x0210
-	0x0214
-		0x0214
-		0x0218
-		0x021C
-		0x0220
-0x0224 (mat4)  ??? ref in 451D60, copied from 0x020
-	0x0224
-		0x0224
-		0x0228
-		0x022C
-		0x0230
-	0x0234
-		0x0234
-		0x0238
-		0x023C
-		0x0240
-	0x0244
-		0x0244
-		0x0248
-		0x024C
-		0x0250
-	0x0254
-		0x0254
-		0x0258
-		0x025C
-		0x0260
-0x0264 (mat4)  ??? only updated when cam1 or cam2 are on; ref in 451D60, copied from 0x108
-	0x0264 (vec4)  X
-		0x0264 (f32)  Xx
-		0x0268 (f32)  Xy
-		0x026C (f32)  Xz
-		0x0270 (f32)  0
-	0x0274 (vec4)  Y
-		0x0274 (f32)  Yx
-		0x0278 (f32)  Yy
-		0x027C (f32)  Yz
-		0x0280 (f32)  0
-	0x0284 (vec4)  Z
-		0x0284 (f32)  Zx
-		0x0288 (f32)  Zy
-		0x028C (f32)  Zz
-		0x0290 (f32)  0
-	0x0294 (vec4)  T
-		0x0294 (f32)  Tx
-		0x0298 (f32)  Ty
-		0x029C (f32)  Tz
-		0x02A0 (f32)  1
-0x02A4 ??? ref in 4542E0 (cManFunc0x20), looks like pointer to terrain flags
-0x02A8 (u32)  Fog toggles/flags (from LP)
-	1<<03 ref in 453E00
-0x02AC (u32)  track visual flags; defaults to 0xFFFFFF00
-0x02B0  camera zoom (from LP);  ref in 4533A0
-0x02B4  maybe render depth (from LP)
-0x02B8 (f32)	?? ref in HandleRaceCamera_maybe_453E00
+0x01B4	LapComp struct
+0x01E4	mat4	lapcomp spline point transform
+0x0224	mat4	?? staging mat4 for main transform? ref in 451D60, copied from 0x020
+0x0264	mat4	?? staging mat4 for camera focus? only updated when cam1 or cam2 are on; ref in 451D60, copied from 0x108
+0x02A4	ptr	ptr to swrModel_Behavior, see fn_451A80
+0x02A8	u32	Fog toggles/flags (from LP)
+		1<<03 ref in 453E00
+0x02AC	u32	track visual flags; defaults to 0xFFFFFF00
+0x02B0	f32?	camera zoom (from LP);  ref in 4533A0
+0x02B4	f32?	maybe render depth (from LP)
+0x02B8	f32	?? ref in HandleRaceCamera_maybe_453E00
 0x02BC	[3]u32	Fog RGB
-0x02C0	..
-0x02C4	..
-0x02C8	[3]u32	Fog RGB Target
-0x02CC	..
-0x02D0	..		
+0x02C8	[3]u32	Fog RGB Target		
 0x02D4 (f32)	Fog Distance;  also manages track visual segment load distance 
 0x02D8 (f32)	Fog Distance Target
 0x02DC (f32)	?? ref in fn_4538D0
 0x02E0 (f32)	?? ref in fn_4538D0
-0x02E4
-0x02E8
-0x02EC
-0x02F0
-0x02F4
-0x02F8
-0x02FC
-0x0300
-0x0304
-0x0308
-0x030C
-0x0310
-0x0314
-0x0318
-0x031C
-0x0320
-0x0324
-0x0328
-0x032C
-0x0330
-0x0334
-0x0338
-0x033C
-0x0340
-0x0344
-0x0348
-0x034C
-0x0350
-0x0354
-0x0358
-0x035C
-0x0360
-0x0364
-0x0368
-0x036C
-0x0370
-0x0374
-0x0378
-0x037C
-0x0380
-0x0384
-0x0388
-0x038C
-0x0390
-0x0394
-0x0398
-0x039C (f32)  camera shake offset,  ref in 4542E0
-0x03A0 (f32)  camera shake speed,  ref in 4542E0
-0x03A4 (f32)  camera shake max offset,  ref in 4542E0
+0x02E4	u32	?? flags, terrain lighting related, see fn_451800
+0x02E8	ENTITY_CMAN_LIGHT_SML
+0x030C	ENTITY_CMAN_LIGHT_SML
+0x0330	ENTITY_CMAN_LIGHT_LRG
+0x0364	ENTITY_CMAN_LIGHT_LRG
+0x0398	f32	?? 1.0 + frametime*2; see fn_451800
+0x039C	f32	camera shake offset,  ref in 4542E0
+0x03A0	f32	camera shake speed,  ref in 4542E0
+0x03A4	f32	camera shake max offset,  ref in 4542E0
 0x03A8 END
 
 0x39C-0x3A4 notes
 	GVG Shak command - 0.25 max offset, 8 speed 
 	DD Shak command - 0.05 max offset, 4 speed
 	both called from 47CE60
+
+ENTITY_CMAN_LIGHT_SML (directional/global light?)
+0x00	Vec3	?? lighting ambient color; probably 2x 0x24-long struct
+0x0C	Vec3	unit vector pointing to 0x340 ('lighting vec3'); see fn_451160
+0x18	Vec3	?? lighting color
+0x24 END
+
+ENTITY_CMAN_LIGHT_LRG (point light?)
+0x00	u32	?? flags, terrain lighting related, see fn_451800
+		probably 2x 0x34-long struct, second one gets copied into here
+0x04	Vec3	lighting ambient color; transferred from model behavior struct, see fn_451800
+0x10	Vec3	lighting vec3; copied from model behavior struct, see fn_451800
+0x1C	Vec3	lighting light color; transferred from model behavior struct, see fn_451800
+0x28	ptr	lighting unk model node?? copied from model behavior struct, see fn_451800
+		code seems to treat as vec3, behavior struct def wrong?
+0x2C	??	lighting unk; copied from model behavior struct, see fn_451800
+0x30	??	lighting unk; copied from model behavior struct, see fn_451800
+0x34 END
+
+
+ENTITY_CMAN_SHAK struct
+- pointer fed into cb24 magic/payload arg for 'Shak' event
+0x00	u32	'Shak'
+0x04	f32	max offset
+0x08	f32	speed
+
+ENTITY_CMAN_CBUT struct
+- pointer fed into cb24 magic/payload arg for 'CBut' event
+0x00	u32	'CBut'
+0x04	ptr	Test entity, event skipped if ptr doesn't match cMan->pTestEntity
+
+ENTITY_CMAN_DETH struct
+- pointer fed into cb24 magic/payload arg for 'Deth' event
+0x00	u32	'Deth'
+0x04	ptr	Test entity, most of the event skipped if ptr doesn't match cMan->pTestEntity
+0x08	BOOL?	if 1, event sets camera to 9 ('end of death anim handler'), else 8 (death cam)
+0x0C	ptr	vec3
+0x10	ptr	vec3?
+0x14	ptr	vec3?
+
+ENTITY_CMAN_SWEE struct
+- pointer fed into cb24 magic/payload arg for 'Shak' event
+0x00	u32	'Swee'
+0x04	BOOL?	?? if this is on, seems to insta-end the sweep cam, instead of resetting it?

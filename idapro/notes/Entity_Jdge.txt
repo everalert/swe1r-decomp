@@ -4,256 +4,112 @@ see EntitySystem.txt for more details about the system
 Seems to be for handling the race completion aspect of the game
 including this in savestate data prevented "restart race" from working -> info used to load areas stored in Jdge???
 
+EVENTS - EventHandler(0x24)
+
+JAsn
+NAsn
+Begn
+  - event called from fn_45B290
+Load
+Join
+Paws
+Mstr
+  - set Jdge flag @4 OFF
+RSet
+  - call 'Slep' on all Jdge entities
+Slep
+  - set Jdge flag @28 ON
+Wake
+  - set Jdge flag @28 OFF
+
 
 FUNCTIONS
+
 45D0B0 - causes a load to be triggered from within race (to restart, quit, etc.)
 
 
 CONSTANTS
-50CA34 - used in 45D0B0 as a gate (0 = allow load), and set to 1 in callback0x24 behind 'Begn' check; possibly used to indicate player is outside of race
+
+0x50CA34 - used in 45D0B0 as a gate (0 = allow load), and set to 1 in callback0x24 behind 'Begn' check; possibly used to indicate player is outside of race
+0x46684C    [32][2]f32	stock AI level/spread values per track
+			allocated on the stack in fn_4667E0
+			[0] = level x10, [1] = spread
+	
 
 
 OFFSETS
 
-0x0000 (str32)	entity type id; always 'Jdge'
-0x0004 (u32)	entity system-related flags
-	1<<00
-	1<<01
-	1<<02
-	1<<03
-	1<<04
-	1<<05
-	1<<06
-	1<<07
-	1<<08
-	1<<09
-	1<<10
-	1<<11
-	1<<12
-	1<<13
-	1<<14
-	1<<15
-	1<<16
-	1<<17
-	1<<18
-	1<<19
-	1<<20
-	1<<21
-	1<<22
-	1<<23
-	1<<24
-	1<<25
-	1<<26
-	1<<27
-	1<<28	seems to determine whether pausing opens debug menu or pause menu? see 42AD60
-		also, turning it on in CE makes it so you can't pause at all
-		verify the fn ref is for 0x004 and not 0x008 flags
-	1<<29
-	1<<30
-	1<<31
+0x0000 Entity Header
 0x0008 (u23)	flags
-	1<<00  ??? ref in 463580
-	1<<01  ??? ref in 463580
-	1<<02  ??? ref in 463580; on when triggering race restart
-	1<<03  ??? ref in 463580; on when triggering race restart
-	1<<04
-	1<<05  ??? ref in 463580
-	1<<06
-	1<<07
-	1<<08
-	1<<09
-	1<<10
-	1<<11
-	1<<12
-	1<<13
-	1<<14
-	1<<15
-	1<<16
-	1<<17
-	1<<18
-	1<<19
-	1<<20
-	1<<21
-	1<<22
-	1<<23
-	1<<24
-	1<<25
-	1<<26
-	1<<27
-	1<<28
-	1<<29
-	1<<30
-	1<<31
-0x000C (f32)	race timer, incl. countdown
-0x0010 (ptr) ref in 45E970, spline marker related
-	some kind of struct with data used to render marker positions, maybe 0x5C-long, could be 0x3FC
-	0x00 (u32)  ??? seems to be flags
-		there are checks on this that look like an id, but could just be an exact flag set
-		checked if exactly 0x3064 in 42B640, or elseif 1<<14 is on for alt code path
-	0x04 ???  always FFFFFFFF from what ive seen so far
-	0x08 ???  always FFFFFFFF from what ive seen so far
-	0x0C (u32)  ??? flags of some kind
-		1<<0  ??? ref in 431640, set on when copying mat4 into 0x1C mat3x4
-		1<<1  ??? ref in 431640, set on when copying mat4 into 0x1C mat3x4
-	0x10
-	0x14 (u32)  counter of some kind, ref in 42B640
-	0x18 (ptr)  ??? seems to just point to 0x54?
-	0x1C (mat4x3)  truncated transformation matrix;  used as transport data
-		0x1C (vec3)  X
-			0x1C (f32)  Xx
-			0x20 (f32)  Xy
-			0x24 (f32)  Xz
-		0x28 (vec3)  Y
-			0x28 (f32)  Yx
-			0x2C (f32)  Yy
-			0x30 (f32)  Yz
-		0x34 (vec3)  Z
-			0x34 (f32)  Zx
-			0x38 (f32)  Zy
-			0x3C (f32)  Zz
-		0x40 (vec3)  T
-			0x40 (f32)  Tx
-			0x44 (f32)  Ty
-			0x48 (f32)  Tz
-	0x4C
-	0x50
-	0x54
-	0x58 (ptr)  ??? seems to just point to next address?
-	...
-	0x22C ??? at least in one case, 6 bytes relating to RGB of the spline marker written to here
-			the RGB are 1 byte each tho so there is extra stuff
-			gotten here via devil pointer bullshit, [[[[[[[&0x00]+0x18]+0x00]+0x18]+0x00]+0x00]+0x20]
-0x0014 (ptr) ref in 45E970, spline marker related
-0x0018 (ptr) ref in 45E970, spline marker related
-0x001C (ptr) ref in 45E970, spline marker related
-0x0020 (ptr) ref in 45E970, spline marker related
-0x0024 (ptr) ref in 45E970, spline marker related
-0x0028
-0x002C
-0x0030
-0x0034
-0x0038
-0x003C
-0x0040
-0x0044
-0x0048
-0x004C
-0x0050
-0x0054
-0x0058
-0x005C
-0x0060
-0x0064 (mat4) ???
-	0x0064	X
-		0x0064	Xx
-		0x0068	Xy
-		0x006C	Xz
-		0x0070	0
-	0x0074	Y
-		0x0074	Yx
-		0x0078	Yy
-		0x007C	Yz
-		0x0080	0
-	0x0084	Z
-		0x0084	Zx
-		0x0088	Zy
-		0x008C	Zz
-		0x0090	0
-	0x0094  T
-		0x0094	Tx
-		0x0098	Ty
-		0x009C	Tz
-		0x00A0	1
-0x00A4 (mat4) ???
-	0x00A4	X
-		0x00A4	Xx
-		0x00A8	Xy
-		0x00AC	Xz
-		0x00B0	0
-	0x00B4	Y
-		0x00B4	Yx
-		0x00B8	Yy
-		0x00BC	Yz
-		0x00C0	0
-	0x00C4  Z
-		0x00C4	Zx
-		0x00C8	Zy
-		0x00CC	Zz
-		0x00D0	0
-	0x00D4  T
-		0x00D4	Tx
-		0x00D8	Ty
-		0x00DC	Tz
-		0x00E0	1
-0x00E4 (mat4) ???
-	0x00E4	X
-		0x00E4	Xx
-		0x00E8	Xy
-		0x00EC	Xz
-		0x00F0	0
-	0x00F4  Y
-		0x00F4	Yx
-		0x00F8	Yy
-		0x00FC	Yz
-		0x0100	0
-	0x0104  Z
-		0x0104	Zx
-		0x0108	Zy
-		0x010C	Zz
-		0x0110	0
-	0x0114  T
-		0x0114	Tx
-		0x0118	Ty
-		0x011C	Tz
-		0x0120	1
-0x0124
-0x0128	magic word (Abrt, RStr, Fini, etc.) used in combination with 0x008 low byte = 6 to trigger a load
+	@0..3	see cb14
+		0	countdown
+		1	racing
+		2	endrace stats
+		3	?? determines 0 alpha on starting gate beam
+		4	??
+		5	prerace cam swing
+		6	loading back to cantina or reloading race
+		7	.. no case handled in cb14
+		8	.. no case handled in cb14
+	@00  ??? ref in 463580; currently racing? off in countdown, loading, endrace; on when in pre-race cam swing, when racing
+	@01  ??? ref in 463580; on when loading, when showing endrace stats
+	@02  ??? ref in 463580; on when loading, during pre-race cam swing, OFF when showing endrace stats
+	@03  ??? ref in 463580
+	@04
+	@05  ??? related to countdown? ref in fn_45E200, fn_463580, fn_4634A0
+	@06  ??? related to countdown? either this or @05 = in count? ref in fn_45E200
+	@07
+	@8..11	F=precount, E=count3, C=count2, 8=count1
+	@08	sound for count3 has played
+	@09	sound for count2 has played
+	@10	sound for count1 has played
+	@11
+	@12
+	@13
+	@14
+	@15
+	@16
+	@17
+	@18
+	@19
+	@20
+	@21
+	@22
+	@23
+	@24
+	@25
+	@26
+	@27
+	@28
+	@29
+	@30
+	@31
+0x000C	f32	?? race timer, incl. countdown, seems to be used generically as a timer
+0x0010	[6]ptr	swrModel_Node_Transformed, spline marker related, ref in 45E970
+0x0028	ptr	starting gate model node
+0x002C	ptr	pSplineData unk (the struct)
+0x0030	??	the data loaded from 1B0? or the ptr? ref in 465510, 4651F0
+0x0034	LapComp struct unk1
+0x0064	mat4	nearby spline point transform 1
+0x00A4	mat4	???
+0x00E4	mat4	???
+0x0124	i32	?? hud mode
+0x0128	u32	magic word (Abrt, RStr, Fini, etc.) used in combination with 0x008 low byte = 6 to trigger a load
 0x012C
-0x0130
-0x0134
-0x0138
-0x013C
-0x0140
-0x0144
-0x0148
-0x014C
-0x0150
-0x0154
-0x0158
-0x015C
-0x0160
-0x0164 (mat4) ???
-	0x0164	X
-		0x0164	Xx
-		0x0168	Xy
-		0x016C	Xz
-		0x0170	0
-	0x0174	Y
-		0x0174	Yx
-		0x0178	Yy
-		0x017C	Yz
-		0x0180	0
-	0x0184	Z
-		0x0184	Zx
-		0x0188	Zy
-		0x018C	Zz
-		0x0190	0
-	0x0194	T
-		0x0194	Tx
-		0x0198	Ty
-		0x019C	Tz
-		0x01A0	1
-0x01A4
+0x0130	??	see fn_464B90 (spline loading fn)
+0x0134	LapComp struct unk2
+0x0164	mat4	nearby spline point transform 2
+0x01A4	ptr	loaded spline data (different to 0x2C)
 0x01A8
-0x01AC ???	ref in 463580
-0x01B0
-0x01B4
-0x01B8
-0x01BC (u32)	number of racers 
-0x01C0 ???	ref in 463580
-0x01C4
-0x01C8 (u32)	race laps setting
-0x01CC
+0x01AC	i32	planet
+0x01B0	i32	model block index? ref in 465510
+0x01B4	i32	?? also spline id, see fn_465D00
+0x01B8	i32	spline id
+0x01BC	i32	number of racers 
+0x01C0	i32	planet track (e.g. planet0 track0 boonta training, track1 boonta classic)
+0x01C4	i32	tweak AI level, -1=*0.9, 1=*1.1
+0x01C8 (i32)	race laps setting
+0x01CC	f32	?? decreasing timer, see cb14
 0x01D0 (f32)	best lap record
 0x01D4 (f32)	3-lap record
 0x01D8

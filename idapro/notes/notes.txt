@@ -19,11 +19,6 @@ right click -> spawn diagram
 
 https://github.com/louriccia/swe1r-reversing
 
-
-__cfltcvt_init_5() -- jinn reeso setup? (seems to overwrite mars name text)
-__cfltcvt_init_6() -- cy yunga setup? (seems to overwrite bullseye name text)
-both called by sub_4104F0()
-
 0x00400000 = EXE+0x00000
 
 5CD5E = generate junkyard part??

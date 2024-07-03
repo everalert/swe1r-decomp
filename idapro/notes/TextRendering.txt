@@ -51,12 +51,26 @@ CONSTANTS
 
 0x50C750	current index/working slot for queue 1
 0x50C758	current index/working slot for queue 2
+0x50C764	?? current index/working slot for map dot queue?
+0x50C0C4	?? item result from parsing subitem index (e.g. the 0 in '~f0'), maybe pointer
+0x50C0AC	?? flag for rendering in hi-res mode (~Fn) in the next pass
 0xE30380	array for storing type 1 strings; 128-byte items, 256 stride
 0xE303A0	array for storing type 2 strings; 128-byte items, 256 stride, interleaved with type 1
-0xE34860	array of type 1 positions; { u16, u16 }
-0xE34660	array of type 2 positions; { u16, u16 }
+0xE34860	array of type 1 positions; { i16, i16 }
+0xE34660	array of type 2 positions; { i16, i16 }
 0xE2B480	array of type 1 rgba values; { u8, u8, u8, u8 }
 0xE343A0	array of type 2 rgba values; { u8, u8, u8, u8 }
+0x450496  u8	value used to limit the type 2 queue size (32)
+0x4C11F4	"DBG" text
+0x4C0948	"CRD" text
+0x4C484C	"LKJ" text
+0x4C4848	"DJJ" text
+0xE9A5E0    [20]i32	AI popup - ??; -1000 (0xFFFFFC18) default, may be used instead of 0xE9A720/0xE9A780, see fn_42C510
+0xE9A640    [20]i32	AI popup - ??; -1000 (0xFFFFFC18) default, may be used instead of 0xE9A720/0xE9A780, see fn_42C510
+0xE9A720    [20]i32	AI popup - ??; -1000 (0xFFFFFC18) default, used in calculation for value at same offset in 0xE9A7E0
+0xE9A780    [20]i32	AI popup - ??; -1000 (0xFFFFFC18) default, used in calculation for value at same offset in 0xE9A7E0
+0xE9A7E0    [20]f32	AI popup - ??; -1000 default/not rendering, see fn_42BE60 (update sprite depth values fn)
+0xE9A840    [20]i32	AI popup - positions; -9999 (0xFFFFD8F1) = do not render
 
 
 FUNCTIONS
@@ -122,3 +136,46 @@ seems to be the fn that actually flushes the type 2 queue (called from 0x4502B0)
 
 0x483CB0
 seems to be for finalizing text rendering, calls 0x450280 and 0x4502B0, 2 layers deep from GameLoop
+
+0x44FCE0 swrText_NewNotification
+used to spawn notification text, e.g. the text that appears when you input a cheat
+*fn (str: [*:0]u8, duration: f32) callconv(.C) void;
+
+0x44FF30 swrText_FlushMapQueue
+called immediately after FlushQueue1 in ProcessQueue1
+*fn () callconv(.C) void;
+
+0x44FEF0 swrText_CreateMapEntry
+max 190 map items
+type: 0=you(X), 1=startline?(tealline), 2=opponent(yellowdot,map1), 3=opponent(blueX,map2)
+*fn (type: u8, x: i16, y: i16) callconv(.C) void;
+
+0x42C7A0 swrText_CreateScreenSpaceEntry
+*fn (X:i16, Y:i16, R:u8, char G:u8, char B:u8, char A:u8, string:[*:0]u8) callconv(.C) void
+- used only by fn_42C510 (draw AI position text)
+- X,Y input converted from window coords to low res render system coords
+    - e.g. if window size 1280x960, x=640 turns into 160 (x=640/1280*320)
+
+void __cdecl swrText_StringParse_SetSubitem_maybe_42D8D0(__int16 a1)
+takes in the numbers from ~f0 etc. during render/parse stage
+appears to be set to 0 as a default in all other cases
+sets 50C0C4
+
+void __cdecl sub_42D900(__int16 a1)
+passes through arg1 to swrText_StringParse_SetSubitem_maybe_42D8D0
+
+void __cdecl sub_4173C0(int a1, __int16 x, __int16 y, char r, char g, char b, char a, const char *a8, int a9, int *a10, int a11)
+- does some text processing, and oscillates flt_4B5D88 between 40.0 and 255.0, going twice as fast down as up
+
+BOOL __cdecl swrText_CheckStringStartDebug_440990(_BYTE *a1, _BYTE *a2)
+- fails if Debug Flag 0x4000 is off
+- check if first 3 characters of string are equal
+- used once to compare filename with DBG in Unk_Hang__43CEB0
+- DBG effect unknown, seems to reset a timer
+
+BOOL __cdecl swrText_CheckStringStart_4409D0(_BYTE *a1, _BYTE *a2)
+- check if first 3 characters of string are equal
+- used in a few places to compare filename with CRD, LKJ, DJJ
+- LKJ spawns dewback in junkyard
+- DJJ spawns a different animal in junkyard
+- CRD effect unknown

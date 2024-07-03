@@ -1,8 +1,0 @@
-MAlt (tlAM) - at the head of ody's loaded 3d data, apparently the tag that indicates the player-model of a pod
-Trak (karT)
-Anim
-Part - tag at the head that indicates AI model LOD
-
-E98200 - 3d queue array??
-
-47CE60 - map trigger handler function

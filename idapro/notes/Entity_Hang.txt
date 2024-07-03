@@ -6,76 +6,197 @@ length - 0xD0
 
 FUNCTIONS
 
-454D40 - DoMenuTransition, maybe
-457620 - EntityHangCallback0x14
+not exhaustive cuz i cbf adding them all and also i started this file way after looking into stuff in ida xd
+
+454D40	DoMenuTransition, maybe
+457620	EntityHangCallback0x14
+4368A0	DrawStartRaceMenu
+436FA0	DrawN64SettingsMenu
+457410	LoadRace probably
+	fn (Hang*, BOOL, BOOL?) void; not sure of meaning of args
+	seems to do the actual load into starting race, but need other steps for cleaning up existing loaded stuff etc.
+	called from cb0x14, cb0x24, fn_434EA0
+434EA0	LoadRaceMacro
+	fn (Hang*) void
+	calls fn_457410 with predefined settings
+4550D0	DrawVehicleStats
+	fn (*Hang, x:f32, y:f32) void
+435700	DrawVehicleSelect
+4575D0	SetupCantinaMeshes; sets some flags in cantina+holotable models, etc.
+
+0x4586E0 - Hang_LoadAssets
+- fn (pHang: *Hang) void
+- called from DoMenuTransition
+- loads models, sprites, etc.
+
+469BF0	MenuCursorDelay_DecX
+469B90	MenuCursorDelay_IncY
+	fn (timeScale:f32) void
+	input 1.0 = 1.0*frametime will be added
+	input negative number to decrement
+
+0x457C20 - Hang_LoadPlanetModels
+- fn () void
+- loads the planet assets for track select into ingame handles 61~72
+
+0x457CF0 - Hang_LoadTrackModels
+- fn () void
+- loads into ingame handles 98~122
+- presumably the track layout holograms
+
+
+CONSTANTS
+
+50C454		ptr			static pointer to Hang struct
+4C00C0		BOOL			vehicle select - show vehicle stats (TAB to toggle)
+0xE2AF60	Mat44			camera look-at location in menus
+0x4C457C	[]Vec3			array refd by 0x50
+0x4C4510	[]vec3			another array refd by 0x50
+0xE29860	[16]JunkyardPart	randomized parts in junkyard
+0xE2A6B0	[8]i16			seems to indicate active shop part/upgrade category when scrolling items for trade
+0xE2A6C0	[35]ShopPart		part data used when viewing trades in shop/junkyard; struct len 0x56
+					end addr seems to be 0xE2AE6C (35 items)
+0x4C1CB8	[42]PartMetadata	seems to be info used to represent parts, e.g. the names; struct len 0x10
+					seems to be one for every upgrade category+level combo (i.e. 42)
+0x4C4000	BOOL			menu screen just transitioned; i.e. first frame of new screen
+0x456D4E	[]void*			switch jumptable for hologram scale in SetTrackMapHologramMat44_456C70
+0x4AD064	f32			track map hologram scale - 0, 1, 6, 7, 9, 10, 12
+0x4AD068	f32			track map hologram scale - 2, 5, 17, 18
+0x4AD06C	f32			track map hologram scale - 4
+0x4AD070	f32			track map hologram scale - 8, 19
+0x4AD074	f32			track map hologram scale - 11
+0x4AD078	f32			track map hologram scale - 13
+0x4AD07C	f32			track map hologram scale - 14
+0x4AD080	f32			track map hologram scale - 15, 22
+0x4ACFCC	f32			track map hologram scale - 16
+0x4ACF58	f32			track map hologram scale - 23, 24
+0x456EA8	[]void*			switch jumptable for pos offset in SetTrackMapHologramMat44_456C70
+0xE29A88	ptr			pointer to vtable of track hologram models
+Hang_LoadRelatedFlag_50C944
+Unk_Hang_NewMenuAsync_4BFEDC
+MenuCursorDelayY_maybe_E295A0
+MenuCursorDelayX_maybe_E295D8
+MenuCursorPosX_maybe_E295D0
 
 
 OFFSETS
 
 0x00	u32	Entity keyword
 0x04	u32	Entity flags
-0x08	current menu; handled by callback0x14, also updated in callback0x14
-	-1	MENU NOT SET
-	0	"Legal" (seen in 454D40)
-	1	title screen menu, including file select and multiplayer
-	2	"Enter Name" (seen in 454D40)
-	3	start race menu ("main menu")
-	4	junkyard
-	5	race results; "post race info" in game code
-	6	NO CASE IN CODE
-	7	watto's shop
-	8	hangar (vehicle upgrades, inspect vehicle); "look at vehicle" in game code
-	9	vehicle select
-	10	NO CASE IN CODE
-	11	NO CASE IN CODE
-	12	track select (tournament screen)
-	13	track detail/race options
-	14	?? set to menu change async id global in 434EC0
-	15	?? set to menu change async id global in 4368A0
-	16
-	17
-	18	cantina entry with character cutscene; state assigned async in 435240
-	- not strongly linked to loaded area, it's only for selecting which UI to draw; e.g. scene 3 can be active with the junkyard loaded
-	- does not do the in-race ui or pause menu
-0x0C	previous menu
-0x10	sub-scene for menu 8 (inspect); checked in callback0x1C before drawing wattos shop? or junkyard?
-0x14	flags; seems to correspond to loading phase; updated/handled by callback0x24, 454D40
-	1<<0	checked in 454D40
-	1<<2	set in 454D40 when 1<<0==1
-	old notes:
-	4 in race
-	5 cantina/shop
-	6 loading race->cantina afted quitting; code around 45A0A0 runs here
-	7 loading race->cantina after finishing; loc_45A2A1 runs here
-0x18
-0x1C
-0x20 ?? ptr used in scene 3 case 2; also scenes 8, 15, 17
-0x24 ?? ptr used in scene 3 case 3
-0x28 ?? ptr used in scene 3 case 0; also in scene7
-0x2C ?? ptr used in scene 3 case 1; also in scene 4
-0x30
-0x34
-0x38 ?? sub-scene for scene 3 (start race menu)
-0x3C	prev. value of 0x38
-0x40	an 'Elmo' entity index; not sure of usage
-0x44	vec3	?? see Unk_Hang_SetupRelated_45AB50
+0x08	i32	menu screen
+		- not strongly linked to loaded area, it's only for selecting which screen to show, 0x38 is for the actual room/scene
+		- does not do the in-race ui or pause menu
+		-1	MENU NOT SET
+		0	"Legal" (seen in 454D40)
+		1	title screen menu, including file select and multiplayer
+		2	"Enter Name" (seen in 454D40)
+		3	start race menu ("main menu")
+		4	junkyard
+		5	race results; "post race info" in game code
+		6	NO CASE IN CODE
+		7	watto's shop
+		8	hangar (vehicle upgrades, inspect vehicle); "look at vehicle" in game code
+		9	vehicle select
+		10	NO CASE IN CODE
+		11	NO CASE IN CODE
+		12	track select (tournament screen)
+		13	track detail/race options
+		14	?? seems to just do a race load, according to cb0x14
+			- set to menu change async id global in 434EC0
+		15	?? conditionally on when about to start race, maybe rival scene
+			- set to menu change async id global in DrawStartRaceMenu_4368A0
+		16	championship podium scene
+		17	unlock new racer scene
+		18	cantina entry with character cutscene; state assigned async in 435240
+0x0C		previous menu screen
+0x10	u32	which text menu to show
+		- what each value does depends on which menu screen you're on
+		- setting it to 1 while on 'start race' screen makes it show n64 quality settings menu instead
+0x14	u32	flags
+		known values:
+		1<<0	hang active (i.e. player in menus); controls whether anything runs in cb14, cb1C, cb20
+		1<<1	if on in cb14, toggled off; set on in fn_45BB80
+		1<<2	?? set on during: cantina screen transition (fn_454D40), drawing vehicle sel (fn_435700)
+		1<<3	?? set on in Hang__440C10, fn run if start of filename is CRD
+		old notes:
+		4 in race
+		5 cantina/shop
+		6 loading race->cantina afted quitting; code around 45A0A0 runs here
+		7 loading race->cantina after finishing; loc_45A2A1 runs here
+0x18	??	set to 0 in setup function fn_45AB50
+0x1C	??	set to 3 in setup function fn_45AB50
+0x20	ptr	Hangar Model Node; not sure if these are classified as Podd nodes, or just 'model' nodes, because idk about models xd
+0x24	ptr	Cantina Model Node
+0x28	ptr	Counter Model Node
+0x2C	ptr	Junkyard Model Node
+0x30 	ptr	Holotable Model Node
+0x34	i32	watto's shop camera state
+		- whole range seems to be 0-39, based on fn_45BDE0
+		1	counter - buy parts
+		4..19	junkyard - various part locations
+		20	inspect - default
+		21	inspect - cockpit
+		22	inspect - engine 1
+		23	inspect - engine 2
+		24	inspect - engine 3
+		25	inspect - engine 4
+		26	inspect - PT01
+		27	inspect - PT02
+		28	inspect - PT03
+		29	inspect - PT04
+		30	inspect - character
+		31	inspect - upgrades - traction, air brake
+		32	inspect - upgrades - turning, cooling
+		33	inspect - upgrades - accel, repair
+		34	inspect - upgrades - top speed
+		35	
+		36	cantina - far holotable (vehicle, etc.)
+		37	cantina - close holotable (track, circuit, etc.)
+		39	cantina - entry cutscene
+0x38	i32	room/physical space
+		0	shop
+		1	junkyard
+		2	inspect/hangar
+		3	cantina
+0x3C	i32	room (prev)
+0x40	i32	Elmo entity index; presumably the randomized character in the cantina entry cutscene
+0x44	vec3	Elmo focus position; for camera look-at passthrough to E2AF60(Mat4) during cantina entry cutscene
 0x48	..
 0x4C	..
-0x50
-0x54
-0x58
-0x5C	u8	?? set in setup function fn_45AB50
+0x50	i8	?? index used to ref vec3 array
+		arrays at 0x4C457C (fn_435700 draw vehicle select) and 0x4C4510 (fn_459150)
+		randomized in latter, then result vec3 passed into an Elmo struct
+0x51	b8	shows developer photo on title screen when on
+		toggled in fn_435240, done on title screen
+		toggle conditions: if ( v6[7] == 11 && InputBitsetLocal_Raw_50C908[0] & 4 && SLOBYTE(InputBitsetLocal_JustOn_50C918[0]) < 0 )
+0x52	??	two bytes possibly unused
+0x54	??	?? ref in 454D40
+0x58	??	?? ref in 454D40
+0x5C	u8	?? ref in 454D40; set in setup function fn_45AB50
 0x5D	u8	track
 0x5E	u8	circuit
 0x5F	u8	'main menu' menu selection index
-0x60	seems connected to +0x14; used in callback0x24
-0x64	seems connected to +0x14; used in callback0x24; default set in fn_45BD90
-0x68	seems connected to +0x14; used in callback0x24; default set in fn_45BD90
-0x6C	u8	laps related flag? see Unk_Hang_DrawRaceResults_maybe_439CE0; default set in fn_45BD90
-0x6D	u8	default set in fn_45BD90
+0x60	??	specifically low byte set to 0 in setup fn (45AB50); set to 0 in cb14, cb24
+		draws vehicle upgrades if on in cb20
+0x64	i32	?? race option (index 5); see fn_43B880 (draw track detail menu)
+		seems to decide what behaviour to do during 'Abrt' event; 2 is supposed to reset Hang settings
+		probably splitscreen multiplayer related setting
+		game crashes if starting normal race with it on?
+		sets racers to 1 if on, playercount <=1, not tournament or time attack, skipping
+		seems connected to +0x14; used in cb24; default set in fn_45BD90 (0), set to 2 in fn_435240
+		see also fn_45BAB0
+0x68	i32	?? race option (index 6); see fn_43B880 (draw track detail menu)
+		seems to set where to send the player after running 'Abrt' event
+		run on menu screen 0 ("legal")
+		seems connected to +0x14; used in cb24; default set in fn_45BD90 (-1), ref in fn_434EC0, fn_434EA0 load race macro
+		range -1..20
+		loading race with it set to 20 makes the game go back to the menu instead of to the race
+		setting >= 0 will make 'Scen' entity/entities? active during LoadRace function
+0x6C	u8	tournament mode
+0x6D	u8	time attack mode
 0x6E	u8	mirror
-0x6F	u8	default set in fn_45BD90
-0x70	u8	used like a counter/len in fn_435240, fn_45BF20; default set in fn_45BD90
+0x6F	u8	player slot
+0x70	u8	player count
 0x71	u8
 0x72	u8	no. of racers
 0x73	[23]u8	race character ids; 0x73 = player racer
@@ -85,36 +206,69 @@ OFFSETS
 0x80	..
 0x84	..
 0x88	..
-0x8A	u16?
+0x8A	??	specifically low byte set to 4 in setup function fn_45AB50
 0x8C	u8?
 0x8D	u8?
 0x8E	u8?
 0x8F	u8	Laps
 0x90	u8	AI Speed
 0x91	u8	Winnings (tournament mode)
-0x92	u16	Fair - 1st
-0x94	u16	Fair - 2nd	
-0x96	u16	Fair - 3rd	
-0x98	u16	Fair - 4th
-0x9A	u16	Skilled - 1st
-0x9C	u16	Skilled - 2nd	
-0x9E	u16	Skilled - 3rd	
-0xA0	u16	Skilled - 4th
-0xA2	u16	Winner Takes All - 1st
-0xA4	u16	Winner Takes All - 2nd	
-0xA6	u16	Winner Takes All - 3rd	
-0xA8	u16	Winner Takes All - 4th
-0x9C
-0xA0
-0xA4
-0xA8
+0x92	i16	Fair - 1st
+0x94	i16	Fair - 2nd	
+0x96	i16	Fair - 3rd	
+0x98	i16	Fair - 4th
+0x9A	i16	Skilled - 1st
+0x9C	i16	Skilled - 2nd	
+0x9E	i16	Skilled - 3rd	
+0xA0	i16	Skilled - 4th
+0xA2	i16	Winner Takes All - 1st
+0xA4	i16	Winner Takes All - 2nd	
+0xA6	i16	Winner Takes All - 3rd	
+0xA8	i16	Winner Takes All - 4th
+0xAA	u16?
 0xAC
 0xB0
-0xB4
-0xB8
-0xBC
-0xC0
-0xC4
-0xC8
-0xCC
+0xB4	(ptr)	track icon - 1st place sprite (92)
+0xB8	(ptr)	track icon - 2nd place sprite (93)
+0xBC	(ptr)	track icon - 3rd place sprite (94)
+0xC0	(ptr)	track icon - no placement sprite (95)
+0xC4	(ptr)	track icon - border (97)
+0xC8	(ptr)	stat bar sprite (26, white square)
+0xCC	[3]u8	championship podium characters
+0xCF	u8?
 0xD0 END
+
+
+JunkyardPart struct
+- static array at 0xE29860
+0x00	i8	Category
+0x01	u8	Level
+0x02	u8	Health
+0x03 END
+
+
+ShopPart struct
+- static array at 0xE2A6C0
+0x00	u8	PartId
+0x01	u8	Health
+0x02
+0x03
+0x04	vec3	Translation
+0x10	vec3	TranslationPrev
+0x1C	vec3	TranslationTarget
+0x28	int?	see fn_43DBA0, fn_45A840
+0x2C	int?	see fn_43DBA0, fn_45A840
+0x30
+0x34
+0x38 END
+
+PartMetadata
+- static array at 0x4C1CB8
+0x00	u8	Part Id
+0x01	u8	Upgrade Level
+0x02	?
+0x03	u8	Upgrade Category
+0x04	i32	full shop price
+0x08	?	?? modelblock id?
+0x0C	*char	Part Name
+0x10 END

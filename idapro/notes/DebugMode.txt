@@ -1,18 +1,38 @@
 0x50CO40 = debug level
 0x50CO44 = debug enabled
 0x50CO48 = debug flags, aka "debug text"
-	1<<00 ??? ref in 445680, 445860; shows "gnome" text
-	1<<01 editing vehicle stats
-	1<<02 toggling invincibility
-	1<<03 editing ai level, ai spread, deathspeedmin, deathspeeddrop
-	1<<04 toggling spline markers
-	1<<05 toggling mirrored mode
-	1<<07 ??? ref in 4337E0 "largest function"
-	1<<08 ??? ref in 46BB70, 46BEC0, 4709A0, 470AE0
-	1<<09 ??? ref in 42C1A0, 466E40, 483CB0
-	1<<13 ??? ref in 476EA0 "terrain handler"
-	1<<14 ??? ref in 440990
-	1<<25 ??? ref in 46BEC0
+	@00	??? ref in 445680, 445860; shows "gnome" text
+	@01	editing vehicle stats
+	@02	toggling invincibility
+	@03	editing ai level, ai spread, deathspeedmin, deathspeeddrop
+	@04	toggling spline markers
+	@05	toggling mirrored mode
+	@06	
+	@07	??? ref in 4337E0 "largest function"
+	@08	??? ref in 46BB70, 46BEC0, 4709A0, 470AE0
+	@09	?? enable/allow hide UI hotkey?; ref in 42C1A0, 466E40, 483CB0
+	@10	
+	@11	
+	@12	
+	@13	??? ref in 476EA0 "terrain handler"
+	@14	??? ref in 440990
+	@15	
+	@16	
+	@17	
+	@18	
+	@19	
+	@20	
+	@21	
+	@22	
+	@23	
+	@24	
+	@25	??? ref in 46BEC0
+	@26	
+	@27	
+	@28	
+	@29	
+	@30	
+	@31	
 	used for toggling access to functionality of debug mode
 	set to 0 in 42AE00
 0x50CO4C = debug menu selection

@@ -19,3 +19,9 @@ STRUCTURE
 +0x2C (u32)		sprite index for flag
 +0x30 (u32)		'Pupp' id (pilot model)
 0x34 END
+
+
+mars 0x08 ?
+0x4C28B4 = jinn first name
+-> 0x4C28A0 = jinn byte 0
+-> 0x4C2700 = anakin byte 0?

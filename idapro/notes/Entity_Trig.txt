@@ -1,0 +1,172 @@
+majority of entity struct (0x10 onward) seems to be dynamic data/a union
+
+
+FUNCTIONS
+
+0x47D380	does setup stuff for trigger descriptions on loaded models, based on their type
+		e.g. adding the flags that tell gvg camshake (type 213) to skip lap 1 etc
+void __cdecl Unk_Trig_HandleTriggers__47CE60(ENTITY_TRIG *pTrig, ENTITY_TEST *pTest, char IsLocal)
+void __cdecl Unk_Test_CheckTerrainTriggers__476AC0(ENTITY_TEST *pTest, MODEL_TRIGGER_DESCRIPTION *pTrigDesc)
+
+0x476AC0	Test fn that gets called when checking triggers on nearby terrain
+		checks trigger flags and calls HandleTriggers
+
+
+CONSTANTS
+
+476AE1		branching instruction for handling trigger flags (skip lap 1, etc.)
+		near top of Test fn_476AC0
+476E7C		instruction setting up and calling HandleTriggers; whole call 0x0C long
+		called inside Test fn_476AC0
+		actual call instruction at 476E80
+
+476D03	u16	id1 of tiny bounds check (102 oovo rocks); see fn_476AC0
+476D0D	u16	id2 of tiny bounds check (104 ven laser); see fn_476AC0
+
+
+ENTITY STRUCT
+0x00	Entity Header
+0x08	u32	trigger id?
+0x0C	u32	Flags
+		@00	triggered
+		@01
+		@02	stage 1 triggered (2-stage trigger)
+		@03
+		@04
+		@05
+		@06
+		@07
+		@08
+		@09
+		@10
+		@11
+		@12
+		@13
+		@14
+		@15
+		@16
+		@17
+		@18
+		@19
+		@20
+		@21
+		@22
+		@23
+		@24
+		@25
+		@26
+		@27
+		@28
+		@29
+		@30
+		@31
+0x10	f32	?? but counts up like timer when trigger active; see fn_47C190, Callback0x24_47C710
+0x14	f32
+0x18	vec3	?? dist to pod, but math'd; see Unk_Test_DoHittEvent_47CA90
+0x24	vec3	trigger center
+0x30	vec3	??
+0x3C	ptr	?? pModelNode
+0x40	ptr	?? pModelAnim
+0x44	ptr	?? pModelAnim
+0x48	ptr	?? pModelNode
+0x4C	ptr	pModelTriggerDescription; see fn_47C190, fn_47CE60
+0x50	ptr	pTestTransform, *Mat4x4; see fn_47C190
+0x54	ptr	pModelMaterial; see fn_47C190
+0x58 END
+
+
+KNOWN TRIGGERS
+
+100	shattering ice (ando prime)
+101	rotating door (VEN, EXE), rotates the door from 2nd trigger onward
+102	shattering asteroid (oovo)
+103	ando tent entry opening
+104	VEN death beam
+105	AMR falling pillar/camera shake
+106	GNT tusken raiders
+107	EXE red carpet, unk effect
+108	slalom flag (ando prime)
+201	same as 202, unused
+202	shattering rock (tatooine, INF, EXE)
+203	BEC tusken raiders
+208	ballooncraft (tatooine)
+211	flame (GVG cheeseland, etc.)
+212	shattering tree branch (baroonda)
+213	GVG shortcut opening/cam shake
+301	M100 methane lake, unk effect
+304	AQC animate trams
+306	BB earthquake
+307	AQC doors, moves doors from 2nd trigger onward
+308	AQC top of the ramp leading to doors, not door trigger, unk effect (maybe fish anim?)
+310	mon gazza digger
+312	DD falling pillar/camera shake
+314	DD methane gas cloud spawner
+501	INF breaking the gold stuff while going over lava
+503	INF at the hairpin after the first straight, unk effect
+900	unused; respawns pod at spline without death, and shows notif with garbage text
+
+
+PLANET-ASSET-TRIGGER LOOKUP for standard asset vtable
+triggers
+	0	201, 212, 102, 100, 314
+	1	202, 301
+	2	108
+	3	213
+	4	
+	5	501
+0 tatooine
+	0	(252) small rock shattering
+	1	(251) big rock shattering
+	2	(308) ballooncraft
+	3 
+	4 
+	5 
+1 ando prime
+	0	(254) ice shattering
+	1	(251) big rock shattering
+	2	(196) slalom flag (Part)
+	3	(197) slalom flag (Modl child 1)
+	4	(197) slalom flag (Modl child 0)
+	5 
+2 aquilaris
+	0	(155) opee sea killer (Pupp)
+	1	(306) giant rock shattering
+	2 
+	3 
+	4 
+	5 
+3 ord ibanna
+	0 
+	1 
+	2 
+	3 
+	4 
+	5 
+4 baroonda
+	0	(296) tree shattering
+	1	(295) rock shattering
+	2	(317) flames
+	3	(306) giant rock shattering
+	4	
+	5	(311) gold lava shattering
+5 mon gazza
+	0	(312) mon gazza digger
+	1	
+	2	(317) flames
+	3	
+	4	
+	5	
+6 oovo
+	0	(307) asteroid shattering
+	1	
+	2	
+	3	
+	4	
+	5	
+7 malastare
+	0	(309) methane gas fire
+	1	
+	2	
+	3	
+	4	
+	5	

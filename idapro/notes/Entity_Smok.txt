@@ -1,0 +1,60 @@
+seems to be the spawnable effects, e.g. death explosion, sebulba flamethrower
+
+FUNCTIONS
+
+0x465310 - Smok_InitResources
+- fn () void
+- allocates entity memory and inits members
+- loads and inits fireball assets
+
+0x4653F0 - Smok_LoadFireballAndExplosion?
+- like above function, but loads pod explosion as well, and doesn't do entity stuff
+
+CONSTANTS
+
+0xE27168	ptr to array of unk model node ptrs, which is ref'd when doing entity 'Aloc' event
+
+
+ENTITY STRUCT
+
+0x0000	Entity Header
+0x0008
+0x000C
+0x0010
+0x0014
+0x0018
+0x001C
+0x0020	mat4	transform?
+0x0060	i32	effect type? see fn_46A5F0
+		2,3	explosion
+		6	engine fire
+		8	sebulba flamethrower
+0x0064	u32	Flags?
+		1<<0	keep alive when timer expires
+0x0068	f32	Timer, effect cleared and entity freed on expiry
+0x006C
+0x0070	i32	Model Count (of nodes in 0xF4 array); see fn_469E70
+0x0074	mat44?	not sure of type, but see fn_46A5F0
+0x0078
+0x007C
+0x0080
+0x0084
+0x0088
+0x008C
+0x0090
+0x0094
+0x0098
+0x009C
+0x00A0
+0x00A4
+0x00A8	f32	?? used as max value for timers at 0x68, 0xD4, 0xD8; see cb14
+0x00AC
+0x00B0
+0x00B4	vec4	??
+0x00C4	vec4	??
+0x00D4	f32	?? timer-ish, see cb14
+0x00D8	f32	?? timer-ish, see cb14
+0x00DC	[5]u32	?? set to 0 when assigning ptr to same slot in 0xF4 array
+0x00F0	ptr	addr of owner's ref to this smok entity
+0x00F4	[5]swrModel_NodeTransformed*	flags set on this when 0x1A timer runs out, see cb14
+0x0108 END

@@ -98,6 +98,8 @@ fn_428370
 fn_416FD0
 	- seems to map pointer of loaded sprite data to internal resource index of some kind?
 
+Unk_swrQuad_UpdateMouseCursor_408220
+
 
 QUAD STRUCT
 
@@ -127,7 +129,7 @@ QUAD STRUCT
 	1<<16	high-res mode (320x240->640x480)?  on for lens flares, see fn_464010; on for "STAR" title text, see fn_435240
 	1<<17
 	1<<18
-	1<<19
+	1<<19	?? ref in fn_4584A0, used on track select icons (both flags and the plain one)
 	1<<20
 	1<<21
 	1<<22
@@ -162,47 +164,47 @@ possibly different layout between inrace and cantina
 011	in-race hud - LAP to TIME connecting green line; see fn_4603F0
 012	in-race hud - TIME to POS connecting green line; see fn_4603F0
 013	in-race hud - blue bar background at top; see fn_4603F0
-014
-015
-016
-017
-018
-019
-020
-021
-022
-023
-024
-025	in-race minimap background; see fn_4603F0
-026
-027
-028
-029
-030
-031
-032
-033
-034
-035
-036
-037
-038
-039
-040
-041
-042
-043
-044
-045
-046
-047
-048
-049
-050
-051
-052
-053
-054
+014	in-race hud - N64 A Button icon
+015	in-race hud - (P1?) speed meter/bar; P1/P2 order wrong? see fn_45FE70
+016	in-race hud - (P1?) speed meter/bar
+017	in-race hud - (P1?) speedo frame
+018	in-race hud - (P1?) circle; speed dot?
+019	in-race hud - (P2?) speed meter/bar
+020	in-race hud - (P2?) speed meter/bar
+021	in-race hud - (P2?) speedo frame
+022	in-race hud - (P2?) circle; speed dot?
+023	in-race hud - ?? something only configured on P2 setup logic? see also fn_4610F0
+024	in-race hud - circle
+025	in-race hud - minimap background; see fn_4603F0
+026	in-race hud - ?? gradient; same sprite as top and minimap
+027	in-race hud - (P1?) engine piece top 1
+028	in-race hud - (P1?) engine piece mid 1
+029	in-race hud - (P1?) engine piece bot 1
+030	in-race hud - (P1?) engine piece top 2
+031	in-race hud - (P1?) engine piece mid 2
+032	in-race hud - (P1?) engine piece bot 2
+033	in-race hud - (P1?) engine outline 1
+034	in-race hud - (P1?) engine outline 2
+035	in-race hud - (P2?) engine piece top 1
+036	in-race hud - (P2?) engine piece mid 1
+037	in-race hud - (P2?) engine piece bot 1
+038	in-race hud - (P2?) engine piece top 2
+039	in-race hud - (P2?) engine piece mid 2
+040	in-race hud - (P2?) engine piece bot 2
+041	in-race hud - (P2?) engine outline 1
+042	in-race hud - (P2?) engine outline 2
+043	in-race hud - pilot flags start
+044	in-race hud - ..
+045	in-race hud - ..
+046	in-race hud - ..
+047	in-race hud - ..
+048	in-race hud - ..
+049	in-race hud - ..
+050	in-race hud - ..
+051	in-race hud - ..
+052	in-race hud - ..
+053	in-race hud - ..
+054	in-race hud - ..end? (game actually doesn't crash until >20 racers)
 055
 056
 057
@@ -211,25 +213,25 @@ possibly different layout between inrace and cantina
 060
 061
 062
-063
-064
-065
-066
-067
-068
-069
-070
-071
-072
-073
-074
-075
-076
-077
-078
-079
-080
-081
+063	in-race - (flare) soft white circle
+064	in-race - (flare) soft white circle (conditionally set in fn_464010)
+065	in-race - flare ring
+066	in-race - (flare) white circle
+067	in-race - (flare) white circle
+068	in-race - (flare) white circle
+069	in-race - (flare) white circle
+070	in-race - (flare) white circle
+071	in-race - (flare) white circle
+072	in-race - (flare) white circle
+073	in-race - flare ring (73~80 conditionally set in fn_464010)
+074	in-race - (flare) white circle
+075	in-race - (flare) white circle
+076	in-race - (flare) white circle
+077	in-race - (flare) white circle
+078	in-race - (flare) white circle
+079	in-race - (flare) white circle
+080	in-race - (flare) white circle
+081	in-race - (flare) white circle (81~140 same)
 082
 083
 084
@@ -247,90 +249,90 @@ possibly different layout between inrace and cantina
 096	?? ref in draw stat bar fn
 097	?? ref in draw stat bar fn
 098
-099
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
+099	cantina - track select - track flag/panel sprites (4x7=28; see fn_4584A0)
+100	..
+101	..
+102	..
+103	..
+104	..
+105	..
+106	..
+107	..
+108	..
+109	..
+110	..
+111	..
+112	..
+113	..
+114	..
+115	..
+116	..
+117	..
+118	..
+119	..
+120	..
+121	..
+122	..
+123	..
+124	..
+125	..
+126	.. last
 127
 128
 129
-130	blank quads used for stat bars; doesn't seem to usable as blank quads when in race? or just bad hook?
-131	..
-132	..
-133	..
-134	..
-135	..
-136	..
-137	..
-138	..
-139	..
-140	..
-141	..
-142	..
-143	.. last (range setup in fn_457ED0)
-144	more blank quads; setup with same sprite index as above, but also calls fn_4287E0 with 0x2000 while setting these
-145	..
-146	..
-147	..
-148	..
-149	..
-150	..
-151	..
-152	..
-153	..
-154	..
-155	..
-156	..
-157	..
-158	.. could be the last blank quad in practice, observed sprite pointer changes for next 3?
-159	..
-160	..
-161	.. last (according to range setup in fn_457ED0)
-162
-163
-164
-165
-166
+130	cantina - blank quads used for stat bars; 'start race' n64 settings menu bar 1
+131	cantina - 'start race' n64 settings menu bar 2
+132	cantina - ..
+133	cantina - ..
+134	cantina - ..
+135	cantina - ..
+136	cantina - ..
+137	cantina - ..
+138	cantina - ..
+139	cantina - ..
+140	cantina - ..
+141	cantina - ..; in-race - sml flare fine (128), repeated 10 times. 141~160 can instead be white circle, see fn_464010
+142	cantina - ..
+143	cantina - .. last (range setup in fn_457ED0)
+144	cantina - quads for part health bars, 2 per part; setup in fn_4287E0, drawn in fn_4557E0
+145	cantina - ..
+146	cantina - ..
+147	cantina - ..
+148	cantina - ..
+149	cantina - ..
+150	cantina - ..
+151	cantina - ..; in-race - sml flare solid (127), repeated 10 times
+152	cantina - ..
+153	cantina - ..
+154	cantina - ..
+155	cantina - ..
+156	cantina - ..
+157	cantina - ..
+158	cantina - .. could be the last blank quad in practice, observed sprite pointer changes for next 3?
+159	cantina - ..
+160	cantina - ..
+161	cantina - .. last (according to range setup in fn_457ED0, same in fn_4584A0); in-race - countdown 1
+162	in-race - countdown 2
+163	in-race - countdown 3
+164	in-race - 1st place flag
+165	in-race - 2nd place flag
+166	in-race - 3rd place flag
 167
 168
 169
-170
-171
-172
-173
-174
-175
-176
-177
+170	cantina - hor scrollbar right arrow
+171	cantina - hor scrollbar 
+172	cantina - hor scrollbar right arrow highlight
+173	cantina - hor scroolbar left arrow
+174	cantina - hor scrollbar 
+175	cantina - hor scrollbar left arrow highlight
+176	cantina - hor scrollbar 
+177	cantina - ver scrollbar up arrow
 178
-179
-180
+179	cantina - ver scrollbar up arrow highlight
+180	cantina - ver scrollbar down arrow
 181
-182
+182	cantina - ver scrollbar down arrow highlight
 183
 184
 185
@@ -397,7 +399,7 @@ possibly different layout between inrace and cantina
 246
 247
 248
-249
+249	mouse cursor
 250
 251
 252

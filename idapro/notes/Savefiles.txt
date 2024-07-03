@@ -1,9 +1,19 @@
+i have way more defined than what i copypasted here, forgot where tho
+need to find it and consolidate here
+
 //SAVE.sav structure
+
+0xE35A60	[32]char	filename
+0xE35A94			vehicle unlocks
 
 //0x00 byte[4], magic number
 //0x04 byte[0x50], file block
 //-> 0x00 string[0x20], most recent loaded filename?
 //-> 0x20-0x23 = ??? (0x21 = 1?, 0x22 = file slot?)
+0x23 ref in fn_46BEC0
+	- 0,9 = ?? normal control
+	- 1-7 = ?? stiffer controls but much higher offthrottle slide at 1, higher number makes both stiffer
+	- 8 = no case in code, literally can't control the pod
 //-> 0x24 byte, selected vehicle
 //-> 0x25 byte(flags), amateur circuit track unlocks, default 01
 //-> 0x26 byte(flags), semi-pro circuit track unlocks, default 01
@@ -25,6 +35,26 @@
 
 
 //tgfd.dat structure
+
+0xE364A5    u8		music vol
+0xE364A6    u8		sound vol
+0xE364A8    u32		settings flags
+			@00 = stereo on
+			@01 = lens flares on
+			@04 = hi-res on (seems to only do anything on n64?)
+			@05 = ?? set in UnlockPodsTracksCheat_43D9A0
+				checked in Hang__440BC0 if not tournament mode
+				checked in TrackLoadingRelated__45B290 if 50CA3C (BOOL) true
+			@06 = ?? set in Hang__440C10, fn run if start of filename is CRD
+0xE364AC    i8		?? set to -1 in UnlockPodsTracksCheat_43D9A0
+0xE364AD    i8		?? set to -1 in UnlockPodsTracksCheat_43D9A0
+0xE364AE    i8		?? set to -1 in UnlockPodsTracksCheat_43D9A0
+0xE364AF    i8		?? set to 15 in UnlockPodsTracksCheat_43D9A0
+0xE365F4    []f32	timesheet - 3lap times
+0xE366BC    []f32	timesheet - 1lap times
+0xE37404    []u8	?? timesheet - pilots?
+0xE364E8    u32		loaded sav vehicle unlocks
+0xE364B0    u32		global vehicle unlocks
 
 //0x000 byte[4], magic word
 //-> 03 00 01 00

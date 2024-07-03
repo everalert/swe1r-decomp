@@ -11,6 +11,12 @@ i.e. need to get pointer from PodRaceData for each racer, cannot rely on order
 the AI structs seem to be the same length, possibly different internals (or, large unused chunks?)
 
 
+CONSTANTS
+
+0x472CFA	jumptable for updating control surfaces in fn_472A50
+		see this fn for huge list of stuff in the 0x0344 model node vtable
+
+
 OFFSETS
 
 0x0000 (str)	Entity Type string, known values: Test
@@ -23,29 +29,10 @@ OFFSETS
 0x0018 ???  Spawn value, seems to be flags; ref in 450C00 
 0x001C ???  Spawn value, definitely related to the other spawn values (included in a memcpy)
 0x0020 (mat4)  transformation matrix
-	0x0020 (vec4) X
-		0x0020 (f32)  Xx
-		0x0024 (f32)  Xy
-		0x0028 (f32)  Xz
-		0x002C (f32)  0
-	0x0030 (vec4) Y
-		0x0030 (f32)  Yx
-		0x0034 (f32)  Yy
-		0x0038 (f32)  Yz
-		0x003C (f32)  0
-	0x0040 (vec4) Z
-		0x0040 (f32)  Zx
-		0x0044 (f32)  Zy
-		0x0048 (f32)  Zz
-		0x004C (f32)  0
-	0x0050 (vec4) T
-		0x0050 (f32)  Xpos 
-		0x0054 (f32)  Ypos
-		0x0058 (f32)  Zpos
-		0x005C (f32)  1
 0x0060 (u32)  Flags
+	@0..3	'racing status'? all cleared when countdown ends, except @01 (see fn_474D80 "Go!!")
 	1<<00  in countdown?
-	1<<01  race started? stays on after crossing line
+	1<<01	in race (racing), stays on while driving;  turned on when countdown ends (see fn_474D80 "Go!!")
 			ref in 46CF00, checked to see if on while 00,02,03 are all off
 	1<<02  probably completion status related
 	1<<03  probably completion status related
@@ -56,6 +43,7 @@ OFFSETS
 			nor if you press brake before going slow enough (doesn't buffer)
 			only other time observed is when you die until you start accelerating again
 	1<<05  race not ended?
+		used to single out pods for skipping AI for triggers in fn_476AC0
 			set to 1 in prerace media cutscene, stays on throughout race until crossing line
 			referenced in 46CE30, 46CF00, 47B520, 479E10
 	1<<06  ??? referenced in 47FDD0_LapCompletion, 46CF00_CalcTargetTurnRate, 470610
@@ -63,7 +51,8 @@ OFFSETS
 	1<<08  ??? referenced in 46B670, 46D170; related to going backward timer 0x110
 	1<<09  is braking
 	1<<10  is repairing;  set on during postrace
-	1<<11  'reset pod' from LP;  ref in 46BEC0; next to isdead
+	1<<11	reset pod; turning this on will make you teleport to the spline
+		shows "ka-pow" text in UiDrawRace_462B20
 	1<<12  'respawn pod' from LP
 			turns on when in autopilot, race not finished and deathspeed triggered (lmao)  
 			refs in 46BEC0, 4611F0, 46D170, 40B150, 47B520, 47B000_DeathSpeedHandler
@@ -72,13 +61,14 @@ OFFSETS
 	1<<14  is dead
 	1<<15  ??? - referenced in 46B670, seems race completion-related
 	1<<16  ??? - referenced in 46B670, seems race completion-related
-	1<<17  'TP pod to next spline point?' from LP;  ref in 46D170
+	1<<17  reset pod at spline point (does not force death on its own); see cb14
 	1<<18  ??? ref in 47B520
 	1<<19  camera engine view
 	1<<20  camera looking back
 	1<<21  is able to charge boost
 	1<<22  ???  called from 4783E0_ApplyAcceleration(), 470610
 			locks thrust to 1.2 (from LP)
+			set on when boosting and unable to charge boost, in fn_46BD20 (boost charge fn)
 	1<<23  is boosting
 	1<<24  ???  is going uphill? sudden pitch change flag? ??? ref in 4774F0; gravity related
 	1<<25  in zon state;  not just on zon terrain, but presumably triggered by hitting zon terrain
@@ -89,8 +79,8 @@ OFFSETS
 	1<<27  is stopped or stopping?
 			set on when at low but not necessarily 0 speed
 			similar to 1<<04 but the speed threshold seems a little higher
-	1<<28  ??? tested in speed function (from LP)
-	1<<29  
+	1<<28  ?? tested in speed function (from LP); see also fn_477850
+	1<<29  ?? paired with @28, see fn_477850
 	1<<30  ??? was boosting last frame
 	1<<31  ??? ref in 46BEC0, 41D930, 46D170, 477AD0; related to tilting, flags2 1<<27
 0x0064 (u32)  Flags
@@ -108,22 +98,21 @@ OFFSETS
 			BEC 1st shortcut
 			SR/ABY start and end bridges
 			apparently tested in deathspeed function (from LP)
+			reset to 0 in terrain function (fn_476EA0)
 	1<<08  
 	1<<09  is airborne
 	1<<10  tilt disabled, aka "magnet mode"
-	1<<11  boost start window (from LP);  ref in 47AB40 
+	1<<11  Boost Start Window;  ref in 45E200
 	1<<12  boost start cancel (from LP)
 	1<<13  boost start (from LP);  ref in 40B5E0 
 	1<<14  is exploding
-	1<<15  is exploding;  left spinout (from LP),  ref in 46E150
-			rel to flags1 1<<05 (race not ended) and flags2 1<<26 ('zoff state')
-	1<<16  is exploding;  right spinout (from LP),  ref in 46E150
-			rel to flags1 1<<05 (race not ended) and flags2 1<<26 ('zoff state')
+	1<<15  is exploding, right spinout
+	1<<16  is exploding, left spinout
 	1<<17  
 	1<<18  on lava terrain
 	1<<19  on fall terrain
 	1<<20  on soft terrain;  e.g. BC beach
-	1<<21  ??? written during track subsection load (see EXE+51B17)
+	1<<21  ?? turned on when respawn invinc wears out (cb1C), also written during track subsection load (see EXE+51B17)
 	1<<22  ??? ref in 479E10; set or unset based on 1<<23, 'condition for flat' from LP
 	1<<23  on flat terrain (from LP);  ref in 470610, 479E10
 	1<<24  ??? set on at start of race BTC
@@ -154,49 +143,54 @@ OFFSETS
 	0x00A0 (f32)  DamageImmunity
 	0x00A4 (f32)  BaseHoverHeight - why is this randomly in the middle of the normal stat structure
 	0x00A8 (f32)  ISectRadius
-0x00AC (POINTER) - ??? 0x30-long memcpy from here in 0x44EEB0, also copied into cMan+0x1B4 in 452600 
-	0x00AC ???  ref in 47A610, 44EAA0, 44E970, 47FFB0 looks like int/bool
-			used in function run after checking spline marker toggle, lap timing/completion related
-	0x00B0 multiplied by frametime in 44EC40
-	0x00B4 frametime related, capped between 0-1 in 44EC40; this through 0xD8 all ref'd in 44EAA0
-			'progress A-B' from LP
-	0x00B8 frametime related
-	0x00BC (f32)  'progress point A' from LP;  passed into 44E660
-	0x00C0 (f32)  'progress point B' from LP
-	0x00C4 (f32?)
-	0x00C8 (f32?) ???  ref in 47FFB0, lap timing/completion related
-	0x00CC bool or int? ref in 45D390, 44EC40; related to 0xB0 >0.0 case
-	0x00D0 bool or int? ref in 44EC40; related to 0xB4 <0.0 case
-	0x00D4 ??? - ref in 46BEC0; related to lap comp
-	0x00D8
+0x00AC (???)	some struct, 0x30-long memcpy from here in 0x44EEB0, also copied into cMan+0x1B4 in 452600
+	0x00 (ptr)  Pointer to Spline Data
+	0x04 multiplied by frametime in 44EC40
+	0x08 (f32)  frametime related
+		'progress A-B' from LP, interval between 0x10 and 0x14
+		capped between 0-1 in 44EC40
+		this through 0xD8 all ref'd in 44EAA0
+	0x0C frametime related
+	0x10 (i32)  'progress point A' from LP, progress value assigned to spline point;  passed into 44E660
+	0x14 (i32)  'progress point B' from LP, progress value assigned to spline point
+	0x18 (i32?)
+	0x1C (i32?) ???  ref in 47FFB0, lap timing/completion related
+	0x20 bool or int? ref in 45D390, 44EC40; related to 0xB0 >0.0 case
+	0x24 bool or int? ref in 44EC40; related to 0xB4 <0.0 case
+	0x28 ??? - ref in 46BEC0; related to lap comp
+	0x2C
+	0x30 END
 0x00DC ???  ref in 47FFB0, lap timing/completion related
 0x00E0 (f32)  Lap completion (current)
 0x00E4 (f32)  Lap completion (last frame)
 0x00E8 (f32)  Lap completion (max)
-0x00EC ???  ref in 47AB40, 479E10, 47FBB0, 47FFB0
+0x00EC (ptr) swrModel_Node* (maybe NodeTransformed)
+			ref in 47AB40, 479E10, 47FBB0, 47FFB0
 			turning related, copied into 0x140; lap timing/completion related
+			involved in dist2ground calc, see fn_4772F0
+			may be model node associated with the nearest spline point, see 47FFB0
 0x00F0 ???  ref in 471760; checking this val in next enginedata ???
 			ref in 47FFB0, lap timing/completion related
 0x00F4 ???  ref in 47FFB0, lap timing/completion related
 0x00F8 ???  ref in 47FFB0, lap timing/completion related
 0x00FC ???  ref in 470610, related to next enginedata, values in range 0x0FC-0x1F8 passed into 431640 ???  ref in 47FFB0, lap timing/completion related
 0x0100 ???  ref in 47FFB0, lap timing/completion related
-0x0104 ???  ref in 47A610, clamped between 0.01 and 2.00
-0x0108
+0x0104	f32	?? lap progress offset, ref in 47A610, clamped between 0.01 and 2.00
+0x0108	f32	AI Lookahead Squared ?? distance to spline, informs 0x104; see fn_46AF20, fn_429DC0
 0x010C ???  ref in 47FFB0, lap timing/completion related
 0x0110 (f32)  ticks up when following addr <= 8; see func 47FDD0
 0x0114 (i32)  resets to 0 when going backward on track, and tick up to max 200 when moving fwd
-0x0118
-0x011C
-0x0120
-0x0124
+0x0118	vec3	?? see fn_47FCA0
+0x0124	f32?	?? see fn_47FCA0
 0x0128
 0x012C
 0x0130 ???  referenced in 46CE30, related to 0x22C "stat multiplier"
 0x0134
 0x0138 ???  referenced in 46B670, seems race completion-related
-0x013C (POINTER) - ??? collision pointer?
-0x0140 (ptr)	terrain-related pointer
+0x013C	ptr	?? swrModel_Node* (maybe NodeTransformed); involved in dist2ground calc, see fn_4772F0
+0x0140 (ptr) swrModel_Node*
+		note for Tim: maybe not swrModel_Node, usage in fn_476EA0 seems to not align with def
+		terrain-related pointer
 		struct+0x2C = terrain flags, see fn_46FD60 for parsing stuff
 		ref in 462A70, 47AB40, 471760, 479E10, 47FBB0, 451A80; pointer?
 		turning related, race complete related?
@@ -204,21 +198,13 @@ OFFSETS
 0x0148	..
 0x014C	..
 0x0150 (f32)  ??? Speed loss this frame, in "rendered" units; used in functions that call 47B000_DeathSpeedHandler()
-0x0154 (vec3)	??? see CalculateSpeed_478D80
-0x0158	..
-0x015C	..
+0x0154	vec3	New Velocity; new motion vector after integrating slide etc.
 0x0160 (vec3)	probably dynamic down vector used in tubes? gravity related;  ref in 4774F0, 479E10, copied into and from transform matrix Z vec3
 	0x0160 (f32)  X;  'down x' from LP?
 	0x0164 (f32)  Y;  'down y' from LP?
 	0x0168 (f32)  Z;  'down z' from LP?
 0x016C (vec3)	Prev Frame Position?  ref in 47B520
-	0x016C (f32)  X
-	0x0170 (f32)  Y
-	0x0174 (f32)  Z
 0x0178 (vec3)	Death Position;  ref in 46CF00
-	0x0178 (f32)  X
-	0x017C (f32)  Y
-	0x0180 (f32)  Z 
 0x0184 (f32)	??? seems to be vertical motion, including lift from bobbing
 0x0188 (f32)	??? seems to be Zpos of ground under pod
 0x018C (f32)	'thrust' according to LP
@@ -227,34 +213,22 @@ OFFSETS
 	0x0194 'down x' from LP?  ref in 4791D0, 4774F0, 47AB40, 477AD0; gravity related
 	0x0198 'down y' from LP? ref in 4791D0, 4774F0; gravity related
 	0x019C 'down z' from LP? ref in 4791D0, 4774F0; gravity related
-0x01A0 (f32)  speed
-0x01A4 (f32)  speed accel component
+0x01A0	f32	speed
+0x01A4	f32	speed accel component
 		up while accelerating, down with offthrottle, behaves a bit like a counter
-0x01A8 (f32)  speed boost component; similar behaviour to above
-0x01AC 'speed multiplier' from LP
+0x01A8	f32	speed boost component; similar behaviour to above
+0x01AC		'speed multiplier' from LP
 		referenced in 46CE30, 46CF00; turn rate related, used with 0x22C stat multiplier
-0x01B0 ??? ref in 4774F0; gravity related, to do with bobbing; 'fall float rate' according to LP
-0x01B4 ??? ref in 4774F0; gravity related, to do with bobbing; 'fall float value' according to LP
-0x01B8 (vec3)  Velocity
-	0x01B8 (f32)  X
-	0x01BC (f32)  Y
-	0x01C0 (f32)  Z
-0x01C4 (vec3)  Slope Speed
-	0x01C4 (f32)  X
-	0x01C8 (f32)  Y
-	0x01CC (f32)  Z
-0x01D0 (vec3)  Collision Speed
-	0x01D0 (f32)  X
-	0x01D4 (f32)  Y
-	0x01D8 (f32)  Z
-0x01DC (vec3)  Opponent Collision Speed
-	0x01DC (f32)  X
-	0x01E0 (f32)  Y
-	0x01E4 (f32)  Z
+0x01B0	???	ref in 4774F0; gravity related, to do with bobbing; 'fall float rate' according to LP
+0x01B4	???	ref in 4774F0; gravity related, to do with bobbing; 'fall float value' according to LP
+0x01B8	vec3	Velocity; motion vector
+0x01C4	vec3	Slope Speed
+0x01D0	vec3	Collision Speed
+0x01DC	vec3	Opponent Collision Speed
 0x01E8 (f32)  Slide multiplier;  (0-1; transitions based on input)
 0x01EC (f32)  Current turn rate
 0x01F0 (f32)  Target turn rate
-0x01F4 ??? ref in 47AB40, 47B000_DeathSpeedHandler,  'turning modifier' from LP
+0x01F4	f32	'turning modifier' from LP, forced turn from touching walls (maybe also from red damage?); determines which side to spin in fn_47B000 (death speed fn); see also fn_47AB40
 0x01F8 ??? ref in 47AB40, 4791D0, related to slope speed (0x1C4)?
 0x01FC ??? ref in 47AB40
 0x0200 (f32)  Target tilt angle;  this set of values seems to be only for non-ZOn tilting 
@@ -280,13 +254,11 @@ OFFSETS
 0x024C (f32)  Traction multiplier (general/slide)
 				0.80 off-throttle
 				0.45 slide				
-0x0250 ??? ref in 471760, 
-0x0254 (POINTER) - ??? ref in 462B20
-0x0258 ??? ref in 462B20, seems to be a vec3, possibly turnrate related vec3
-0x025C
-0x0260 ??? - ref in 46CF00; turn rate related
+0x0250	f32	visual z-offset; ref in 471760, 46D6A0
+0x0254	(ptr)	swrModel_Node_Transformed*; green arrow
+0x0258	(vec3)	green arrow target position
 0x0264 ??? - ref in 46BEC0; next to pitch factor
-0x0268 ??? - ref in 46D170; used with frametime
+0x0268	f32	?? sebulba flamethrower timer? set to 15 in fn_46BA30; see also fn_46D170, used with frametime
 0x026C  'level collision toggles' from LP;  referred to by 47B520(), 47AB40
 0x0270 (f32[6])  Engine Segment Lowest Health  (0-1)
 	0x0270 (f32)  TL
@@ -315,1312 +287,135 @@ OFFSETS
 	0x02AC (u32)  TR
 	0x02B0 (u32)  MR
 	0x02B4 (u32)  BR
-0x02B8 ??? ref in 4611F0, 47AD80
+0x02B8	f32	??? ref in 4611F0, 47AD80, 47AD80(cb24)
 		damage related, used with dmgflags 1<<0, invincibility related; 'rumble' from LP 
-0x02BC (f32)  Repair Timer
-0x02C0 (f32)  Damage Warning Timer
-0x02C4 (f32)  Total accumulated damage
-0x02C8 (f32)  Fall/OOB timer
-0x02CC (vec3)  Next Position?
-	0x02CC (f32)  X
-	0x02D0 (f32)  Y
-	0x02D4 (f32)  Z
-0x02D8 (vec3)  Next Rotation?
-	0x02D8 (f32)  X/yaw/turn
-	0x02DC (f32)  Y/pitch
-	0x02E0 (f32)  Z/roll;  next cockpit roll angle?
-0x02E4 (vec3)  Next Rotation Delta? manual tilt rotation vector?
-	0x02E4 (f32)  X/yaw/turn
-	0x02E8 (f32)  Y/pitch
-	0x02EC (f32)  Z/roll;  directly summed with 0x200 in 477AD0
+0x02BC	f32	Repair Timer
+0x02C0	f32	Damage Warning Timer
+0x02C4	f32	Total accumulated damage
+0x02C8	f32	Fall/OOB timer
+0x02CC	vec3	Next Position?
+0x02D8	vec3	Next Rotation?
+0x02E4	vec3	Next Rotation Delta? manual tilt rotation vector?
 0x02F0
 0x02F4 ??? - ref in 46BEC0; global total_time written here
 0x02F8
-0x02FC (f32)  Pitch input;  -0.8 to 0.8
-0x0300 ??? ref in 470610
-0x0304
-0x0308 (f32)  ??? used in 47B520()
-0x030C (f32)  Respawn invincibility timer
+0x02FC	f32	Pitch input;  -0.8 to 0.8
+0x0300	i32	RaceData index
+0x0304	u32	?? used to determine lighting behaviour in fn_451160
+0x0308	f32	?? unk timer; used in 47B520()
+0x030C	f32	Respawn invincibility timer
 		also prevents boost charge, set in 452600
 		ref in 47B520, 470610
-0x0310 ??? ref in 46D040, 4741D0; related to death by speed
-0x0314
-0x0318
-0x031C
+0x0310		?? ref in fn_46D040, fn_4741D0; related to death by speed
+0x0314	[2]ptr	?? smok entities; see fn_46F9A0, probably engine fire effect
+0x031C	ptr	smok entity (sebulba flamethrower effect?); see fn_46BA30
 0x0320
 0x0324
 0x0328
 0x032C
-0x0330 (f32)  Engine exhaust size (left)
-0x0334 (f32)  Engine exhaust size (right)
-0x0338
+0x0330	f32	Engine exhaust size (left)
+0x0334	f32	Engine exhaust size (right)
+0x0338	vec3	?? see fn_46DEA0
 0x033C
 0x0340
-0x0344 (POINTER) - ??? Seems to point to +0x4 in some 'Podd'-labeled struct
-		-0x04 = 'Podd' keyword
-		first few offsets after that are pointers
-		have seen offsets up to +0x108
-0x0348 ??? ref in 470610
-0x034C ??? ref in 470610
-0x0350
-0x0354
-0x0358
-0x035C
-0x0360
-0x0364
-0x0368
-0x036C
-0x0370
-0x0374
-0x0378
-0x037C
-0x0380
-0x0384
-0x0388
-0x038C
-0x0390 (mat4)  left engine? transformation matrix
-	seems to be the engine, but could be something that shares its position
-	possibly neva kee and/or spawn location related
-	0x0390 (vec4) X 
-		0x0390 (f32) Xx
-		0x0394 (f32) Xy
-		0x0398 (f32) Xz
-		0x039C (f32) 0
-	0x03A0 (vec4) Y
-		0x03A0 (f32) Yx
-		0x03A4 (f32) Yy
-		0x03A8 (f32) Yz
-		0x03AC (f32) 0
-	0x03B0 (vec4) Z
-		0x03B0 (f32) Zx
-		0x03B4 (f32) Zy
-		0x03B8 (f32) Zz
-		0x03BC (f32) 0
-	0x03C0 (vec4) T
-		0x03C0 (f32) Tx;  used in 4741D0() when arg2==2, also ref in 471760
-		0x03C4 (f32) Ty;  used in 4741D0() when arg2==2
-		0x03C8 (f32) Tz;  used in 4741D0() when arg2==2
-		0x03CC (f32) 1 
-0x03D0 (mat4) right engine? ref in 470610, possibly neva kee and/or spawn location related
-	0x03D0 (vec4) X
-		0x03D0 (f32)  Xx
-		0x03D4 (f32)  Xy
-		0x03D8 (f32)  Xz
-		0x03DC (f32)  0
-	0x03E0 (vec4) Y
-		0x03E0 (f32)  Yx
-		0x03E4 (f32)  Yy
-		0x03E8 (f32)  Yz
-		0x03EC (f32)  0
-	0x03F0 (vec4) Z
-		0x03F0 (f32)  Zx
-		0x03F4 (f32)  Zy
-		0x03F8 (f32)  Zz
-		0x03FC (f32)  0
-	0x0400 (vec4) T
-		0x0400 (f32)  Xpos - used in 4741D0() when arg2==1
-		0x0404 (f32)  Ypos - used in 4741D0() when arg2==1
-		0x0408 (f32)  Zpos - used in 4741D0() when arg2==1
-		0x040C (f32)  1
-0x0410 (mat4) ??? ref in 470610, possibly spawn location related
-	0x0410 (vec4) X
-		0x0410 (f32)  Xx
-		0x0414 (f32)  Xy
-		0x0418 (f32)  Xz
-		0x041C (f32)  0
-	0x0420 (vec4) Y
-		0x0420 (f32)  Yx
-		0x0424 (f32)  Yy
-		0x0428 (f32)  Yz
-		0x042C (f32)  0
-	0x0430 (vec4) Z
-		0x0430 (f32)  Zx
-		0x0434 (f32)  Zy
-		0x0438 (f32)  Zz
-		0x043C (f32)  0
-	0x0440 (vec4) T
-		0x0440 (f32)  Xpos,  ref in 471760
-		0x0444 (f32)  Ypos
-		0x0448 (f32)  Zpos
-		0x044C (f32)  1
-0x0450 (mat4) ??? ref in 470610, possibly spawn related, probably not location
-	0x0450 (vec4) X
-		0x0450 (f32)  Xx
-		0x0454 (f32)  Xy
-		0x0458 (f32)  Xz
-		0x045C (f32)  0
-	0x0460 (vec4) Y
-		0x0460 (f32)  Yx
-		0x0464 (f32)  Yy
-		0x0468 (f32)  Yz
-		0x046C (f32)  0
-	0x0470 (vec4) Z
-		0x0470 (f32)  Zx
-		0x0474 (f32)  Zy
-		0x0478 (f32)  Zz
-		0x047C (f32)  0
-	0x0480 (vec4) T
-		0x0480 (f32)  Xpos
-		0x0484 (f32)  Ypos
-		0x0488 (f32)  Zpos
-		0x048C (f32)  1
-0x0490 (mat4) cockpit??? ref in 470610
-	copied into 0x390 and 0x3D0 after checking for neva kee
-	0x0490 (vec4) X		
-		0x0490 (f32)  Xx
-		0x0494 (f32)  Xy
-		0x0498 (f32)  Xz
-		0x049C (f32)  0
-	0x04A0 (vec4) Y
-		0x04A0 (f32)  Yx
-		0x04A4 (f32)  Yy
-		0x04A8 (f32)  Yz
-		0x04AC (f32)  0
-	0x04B0 (vec4) Z
-		0x04B0 (f32)  Zx
-		0x04B4 (f32)  Zy
-		0x04B8 (f32)  Zz
-		0x04BC (f32)  0
-	0x04C0 (vec4) T
-		0x04C0 (f32)  Xpos
-		0x04C4 (f32)  Ypos
-		0x04C8 (f32)  Zpos
-		0x04CC (f32)  1
-0x04D0
-0x04D4
-0x04D8
-0x04DC
-0x04E0
-0x04E4
-0x04E8
-0x04EC
-0x04F0
-0x04F4
-0x04F8
-0x04FC
-0x0500
-0x0504
-0x0508
-0x050C
-0x0510
-0x0514
-0x0518
-0x051C
-0x0520
-0x0524
-0x0528
-0x052C
-0x0530
-0x0534
-0x0538
-0x053C
-0x0540
-0x0544
-0x0548
-0x054C
-0x0550
-0x0554
-0x0558
-0x055C
-0x0560
-0x0564
-0x0568
-0x056C
-0x0570
-0x0574
-0x0578
-0x057C
-0x0580
-0x0584
-0x0588
-0x058C
-0x0590
-0x0594
-0x0598
-0x059C
-0x05A0
-0x05A4
-0x05A8
-0x05AC
-0x05B0
-0x05B4
-0x05B8
-0x05BC
-0x05C0
-0x05C4
-0x05C8
-0x05CC
-0x05D0 ??? ref in 471760, "spinout" state when you die with 1 engine gone 
-0x05D4
-0x05D8
-0x05DC
-0x05E0
-0x05E4
-0x05E8
-0x05EC
-0x05F0
-0x05F4
-0x05F8
-0x05FC
-0x0600
-0x0604
-0x0608 ??? ref in 471760
-0x060C
-0x0610 ??? ref in 471760
-0x0614
-0x0618
-0x061C
-0x0620
-0x0624
-0x0628
-0x062C
-0x0630
-0x0634
-0x0638
-0x063C
-0x0640
-0x0644
-0x0648 ??? ref in 471760
-0x064C
-0x0650
-0x0654
-0x0658
-0x065C
-0x0660
-0x0664
-0x0668
-0x066C
-0x0670
-0x0674
-0x0678
-0x067C
-0x0680
-0x0684
-0x0688 ??? ref in 471760
-0x068C
-0x0690
-0x0694
-0x0698
-0x069C
-0x06A0
-0x06A4
-0x06A8
-0x06AC
-0x06B0
-0x06B4
-0x06B8
-0x06BC
-0x06C0
-0x06C4
-0x06C8
-0x06CC
-0x06D0
-0x06D4
-0x06D8
-0x06DC
-0x06E0
-0x06E4
-0x06E8
-0x06EC
-0x06F0
-0x06F4
-0x06F8
-0x06FC
-0x0700
-0x0704
-0x0708
-0x070C
-0x0710
-0x0714
-0x0718
-0x071C
-0x0720
-0x0724
-0x0728
-0x072C
-0x0730
-0x0734
-0x0738
-0x073C
-0x0740
-0x0744
-0x0748
-0x074C
-0x0750
-0x0754
-0x0758
-0x075C
-0x0760
-0x0764
-0x0768
-0x076C
-0x0770
-0x0774
-0x0778
-0x077C
-0x0780
-0x0784
-0x0788
-0x078C
-0x0790
-0x0794
-0x0798
-0x079C
-0x07A0
-0x07A4
-0x07A8
-0x07AC
-0x07B0
-0x07B4
-0x07B8
-0x07BC
-0x07C0
-0x07C4
-0x07C8
-0x07CC
-0x07D0
-0x07D4
-0x07D8
-0x07DC
-0x07E0
-0x07E4
-0x07E8
-0x07EC
-0x07F0
-0x07F4
-0x07F8
-0x07FC
-0x0800
-0x0804
-0x0808
-0x080C
-0x0810
-0x0814
-0x0818
-0x081C
-0x0820
-0x0824
-0x0828
-0x082C
-0x0830
-0x0834
-0x0838
-0x083C
-0x0840
-0x0844
-0x0848
-0x084C
-0x0850
-0x0854
-0x0858
-0x085C
-0x0860
-0x0864
-0x0868
-0x086C
-0x0870
-0x0874
-0x0878
-0x087C
-0x0880
-0x0884
-0x0888
-0x088C
-0x0890
-0x0894
-0x0898
-0x089C
-0x08A0
-0x08A4
-0x08A8
-0x08AC
-0x08B0
-0x08B4
-0x08B8
-0x08BC
-0x08C0
-0x08C4
-0x08C8
-0x08CC
-0x08D0
-0x08D4
-0x08D8
-0x08DC
-0x08E0
-0x08E4
-0x08E8
-0x08EC
-0x08F0
-0x08F4
-0x08F8
-0x08FC
-0x0900
-0x0904
-0x0908
-0x090C
-0x0910
-0x0914
-0x0918
-0x091C
-0x0920
-0x0924
-0x0928
-0x092C
-0x0930
-0x0934
-0x0938
-0x093C
-0x0940
-0x0944
-0x0948
-0x094C
-0x0950
-0x0954
-0x0958
-0x095C
-0x0960
-0x0964
-0x0968
-0x096C
-0x0970
-0x0974
-0x0978
-0x097C
-0x0980
-0x0984
-0x0988
-0x098C
-0x0990
-0x0994
-0x0998
-0x099C
-0x09A0
-0x09A4
-0x09A8
-0x09AC
-0x09B0
-0x09B4
-0x09B8
-0x09BC
-0x09C0
-0x09C4
-0x09C8
-0x09CC
-0x09D0
-0x09D4
-0x09D8
-0x09DC
-0x09E0
-0x09E4
-0x09E8
-0x09EC
-0x09F0
-0x09F4
-0x09F8
-0x09FC
-0x0A00
-0x0A04
-0x0A08
-0x0A0C
-0x0A10
-0x0A14
-0x0A18
-0x0A1C
-0x0A20
-0x0A24
-0x0A28
-0x0A2C
-0x0A30
-0x0A34
-0x0A38
-0x0A3C
-0x0A40
-0x0A44
-0x0A48
-0x0A4C
-0x0A50 ??? ref in 46F2C0, probably mat4
-0x0A54
-0x0A58
-0x0A5C
-0x0A60
-0x0A64
-0x0A68
-0x0A6C
-0x0A70
-0x0A74
-0x0A78
-0x0A7C
-0x0A80
-0x0A84
-0x0A88
-0x0A8C
-0x0A90
-0x0A94
-0x0A98
-0x0A9C
-0x0AA0
-0x0AA4
-0x0AA8
-0x0AAC
-0x0AB0
-0x0AB4
-0x0AB8
-0x0ABC
-0x0AC0
-0x0AC4
-0x0AC8
-0x0ACC
-0x0AD0
-0x0AD4
-0x0AD8
-0x0ADC
-0x0AE0
-0x0AE4
-0x0AE8
-0x0AEC
-0x0AF0
-0x0AF4
-0x0AF8
-0x0AFC
-0x0B00
-0x0B04
-0x0B08
-0x0B0C
-0x0B10
-0x0B14
-0x0B18
-0x0B1C
-0x0B20
-0x0B24
-0x0B28
-0x0B2C
-0x0B30
-0x0B34
-0x0B38
-0x0B3C
-0x0B40
-0x0B44
-0x0B48
-0x0B4C
-0x0B50
-0x0B54
-0x0B58
-0x0B5C
-0x0B60
-0x0B64
-0x0B68
-0x0B6C
-0x0B70
-0x0B74
-0x0B78
-0x0B7C
-0x0B80
-0x0B84
-0x0B88
-0x0B8C
-0x0B90
-0x0B94
-0x0B98
-0x0B9C
-0x0BA0
-0x0BA4
-0x0BA8
-0x0BAC
-0x0BB0
-0x0BB4
-0x0BB8
-0x0BBC
-0x0BC0
-0x0BC4
-0x0BC8
-0x0BCC
-0x0BD0
-0x0BD4
-0x0BD8
-0x0BDC
-0x0BE0
-0x0BE4 ??? - ref in 46BEC0
-0x0BE8
-0x0BEC
-0x0BF0
-0x0BF4
-0x0BF8
-0x0BFC
-0x0C00
-0x0C04
-0x0C08
-0x0C0C
-0x0C10
-0x0C14
-0x0C18
-0x0C1C
-0x0C20
-0x0C24
-0x0C28
-0x0C2C
-0x0C30
-0x0C34
-0x0C38
-0x0C3C
-0x0C40
-0x0C44
-0x0C48
-0x0C4C
-0x0C50
-0x0C54
-0x0C58
-0x0C5C
-0x0C60
-0x0C64
-0x0C68
-0x0C6C
-0x0C70
-0x0C74
-0x0C78
-0x0C7C
-0x0C80
-0x0C84
-0x0C88
-0x0C8C
-0x0C90
-0x0C94
-0x0C98
-0x0C9C
-0x0CA0
-0x0CA4
-0x0CA8
-0x0CAC
-0x0CB0
-0x0CB4
-0x0CB8
-0x0CBC
-0x0CC0
-0x0CC4
-0x0CC8
-0x0CCC
-0x0CD0
-0x0CD4
-0x0CD8
-0x0CDC
-0x0CE0
-0x0CE4
-0x0CE8
-0x0CEC
-0x0CF0
-0x0CF4
-0x0CF8
-0x0CFC
-0x0D00
-0x0D04
-0x0D08
-0x0D0C
-0x0D10
-0x0D14
-0x0D18
-0x0D1C
-0x0D20
-0x0D24
-0x0D28
-0x0D2C
-0x0D30
-0x0D34
-0x0D38
-0x0D3C
-0x0D40
-0x0D44
-0x0D48
-0x0D4C
-0x0D50
-0x0D54
-0x0D58
-0x0D5C
-0x0D60
-0x0D64
-0x0D68
-0x0D6C
-0x0D70
-0x0D74
-0x0D78
-0x0D7C
-0x0D80
-0x0D84
-0x0D88
-0x0D8C
-0x0D90
-0x0D94
-0x0D98
-0x0D9C
-0x0DA0
-0x0DA4
-0x0DA8
-0x0DAC
-0x0DB0
-0x0DB4
-0x0DB8
-0x0DBC
-0x0DC0
-0x0DC4
-0x0DC8
-0x0DCC
-0x0DD0
-0x0DD4
-0x0DD8
-0x0DDC
-0x0DE0
-0x0DE4
-0x0DE8
-0x0DEC
-0x0DF0
-0x0DF4
-0x0DF8
-0x0DFC
-0x0E00
-0x0E04
-0x0E08
-0x0E0C
-0x0E10
-0x0E14
-0x0E18
-0x0E1C
-0x0E20
-0x0E24
-0x0E28
-0x0E2C
-0x0E30
-0x0E34
-0x0E38
-0x0E3C
-0x0E40
-0x0E44
-0x0E48
-0x0E4C
-0x0E50
-0x0E54
-0x0E58
-0x0E5C
-0x0E60
-0x0E64
-0x0E68
-0x0E6C
-0x0E70
-0x0E74
-0x0E78
-0x0E7C
-0x0E80
-0x0E84
-0x0E88
-0x0E8C
-0x0E90
-0x0E94
-0x0E98
-0x0E9C
-0x0EA0
-0x0EA4
-0x0EA8
-0x0EAC
-0x0EB0
-0x0EB4
-0x0EB8
-0x0EBC
-0x0EC0
-0x0EC4
-0x0EC8
-0x0ECC
-0x0ED0
-0x0ED4
-0x0ED8
-0x0EDC
-0x0EE0
-0x0EE4
-0x0EE8
-0x0EEC
-0x0EF0
-0x0EF4
-0x0EF8
-0x0EFC
-0x0F00
-0x0F04
-0x0F08
-0x0F0C
-0x0F10
-0x0F14
-0x0F18
-0x0F1C
-0x0F20
-0x0F24
-0x0F28
-0x0F2C
-0x0F30
-0x0F34
-0x0F38
-0x0F3C
-0x0F40
-0x0F44
-0x0F48
-0x0F4C
-0x0F50
-0x0F54
-0x0F58
-0x0F5C
-0x0F60
-0x0F64
-0x0F68
-0x0F6C
-0x0F70
-0x0F74
-0x0F78
-0x0F7C
-0x0F80
-0x0F84
-0x0F88
-0x0F8C
-0x0F90
-0x0F94
-0x0F98
-0x0F9C
-0x0FA0
-0x0FA4
-0x0FA8
-0x0FAC
-0x0FB0
-0x0FB4
-0x0FB8
-0x0FBC
-0x0FC0
-0x0FC4
-0x0FC8
-0x0FCC
-0x0FD0
-0x0FD4
-0x0FD8
-0x0FDC
-0x0FE0
-0x0FE4
-0x0FE8
-0x0FEC
-0x0FF0
-0x0FF4
-0x0FF8
-0x0FFC
-0x1000
-0x1004
-0x1008
-0x100C
-0x1010
-0x1014
-0x1018
-0x101C
-0x1020
-0x1024
-0x1028
-0x102C
-0x1030
-0x1034
-0x1038
-0x103C
-0x1040
-0x1044
-0x1048
-0x104C
-0x1050
-0x1054
-0x1058
-0x105C
-0x1060
-0x1064
-0x1068
-0x106C
-0x1070
-0x1074
-0x1078
-0x107C
-0x1080
-0x1084
-0x1088
-0x108C
-0x1090
-0x1094
-0x1098
-0x109C
-0x10A0
-0x10A4
-0x10A8
-0x10AC
-0x10B0
-0x10B4
-0x10B8
-0x10BC
-0x10C0
-0x10C4
-0x10C8
-0x10CC
-0x10D0
-0x10D4
-0x10D8
-0x10DC
-0x10E0
-0x10E4
-0x10E8
-0x10EC
-0x10F0
-0x10F4
-0x10F8
-0x10FC
-0x1100
-0x1104
-0x1108
-0x110C
-0x1110
-0x1114
-0x1118
-0x111C
-0x1120
-0x1124
-0x1128
-0x112C
-0x1130
-0x1134
-0x1138
-0x113C
-0x1140
-0x1144
-0x1148
-0x114C
-0x1150
-0x1154
-0x1158
-0x115C
-0x1160
-0x1164
-0x1168
-0x116C
-0x1170
-0x1174
-0x1178
-0x117C
-0x1180
-0x1184
-0x1188
-0x118C
-0x1190
-0x1194
-0x1198
-0x119C
-0x11A0
-0x11A4
-0x11A8
-0x11AC
-0x11B0
-0x11B4
-0x11B8
-0x11BC
-0x11C0
-0x11C4
-0x11C8
-0x11CC
-0x11D0
-0x11D4
-0x11D8
-0x11DC
-0x11E0
-0x11E4
-0x11E8
-0x11EC
-0x11F0
-0x11F4
-0x11F8
-0x11FC
-0x1200
-0x1204
-0x1208
-0x120C
-0x1210
-0x1214
-0x1218
-0x121C
-0x1220
-0x1224
-0x1228
-0x122C
-0x1230
-0x1234
-0x1238
-0x123C
-0x1240
-0x1244
-0x1248
-0x124C
-0x1250
-0x1254
-0x1258
-0x125C
-0x1260
-0x1264
-0x1268
-0x126C
-0x1270
-0x1274
-0x1278
-0x127C
-0x1280
-0x1284
-0x1288
-0x128C
-0x1290
-0x1294
-0x1298
-0x129C
-0x12A0
-0x12A4
-0x12A8
-0x12AC
-0x12B0
-0x12B4
-0x12B8
-0x12BC
-0x12C0
-0x12C4
-0x12C8  ??? ref in 479E10
-0x12CC
-0x12D0 ??? ref in 471760, 470610, after some spawn location stuff, possibly a 64-size array of 16-byte items, ptr offsets of these intervals passed into 431640
-0x12D4
-0x12D8
-0x12DC
-0x12E0
-0x12E4
-0x12E8
-0x12EC
-0x12F0
-0x12F4
-0x12F8
-0x12FC
-0x1300
-0x1304
-0x1308
-0x130C
-0x1310 ??? ref in 471760
-0x1314
-0x1318
-0x131C
-0x1320
-0x1324
-0x1328
-0x132C
-0x1330
-0x1334
-0x1338
-0x133C
-0x1340
-0x1344
-0x1348
-0x134C
-0x1350
-0x1354
-0x1358
-0x135C
-0x1360
-0x1364
-0x1368
-0x136C
-0x1370
-0x1374
-0x1378
-0x137C
-0x1380
-0x1384
-0x1388
-0x138C
-0x1390 (mat4)  scrape spark effect transformation matrix;  ref in 46EE20
-	0x1390 (vec4) X		
-		0x1390 (f32)  Xx
-		0x1394 (f32)  Xy
-		0x1398 (f32)  Xz
-		0x139C (f32)  0
-	0x13A0 (vec4) Y
-		0x13A0 (f32)  Yx
-		0x13A4 (f32)  Yy
-		0x13A8 (f32)  Yz
-		0x13AC (f32)  0
-	0x13B0 (vec4) Z
-		0x13B0 (f32)  Zx
-		0x13B4 (f32)  Zy
-		0x13B8 (f32)  Zz
-		0x13BC (f32)  0
-	0x13C0 (vec4) T;  ref in 46EE20
-		0x13C0 (f32)  Xpos
-		0x13C4 (f32)  Ypos
-		0x13C8 (f32)  Zpos
-		0x13CC (f32)  1
-0x13D0 (mat4) ??? ref in 46EE20
-	0x13D0 (vec4) X		
-		0x13D0 (f32)  Xx
-		0x13D4 (f32)  Xy
-		0x13D8 (f32)  Xz
-		0x13DC (f32)  0
-	0x13E0 (vec4) Y
-		0x13E0 (f32)  Yx
-		0x13E4 (f32)  Yy
-		0x13E8 (f32)  Yz
-		0x13EC (f32)  0
-	0x13F0 (vec4) Z
-		0x13F0 (f32)  Zx
-		0x13F4 (f32)  Zy
-		0x13F8 (f32)  Zz
-		0x13FC (f32)  0
-	0x1400 (vec4) T;  ref in 46EE20
-		0x1400 (f32)  Xpos
-		0x1404 (f32)  Ypos
-		0x1408 (f32)  Zpos
-		0x140C (f32)  1
-0x1410 (mat4) ??? right engine? transformation matrix;  ref in 471760
-	0x1410 (vec4) X		
-		0x1410 (f32)  Xx
-		0x1414 (f32)  Xy
-		0x1418 (f32)  Xz
-		0x141C (f32)  0
-	0x1420 (vec4) Y
-		0x1420 (f32)  Yx
-		0x1424 (f32)  Yy
-		0x1428 (f32)  Yz
-		0x142C (f32)  0
-	0x1430 (vec4) Z
-		0x1430 (f32)  Zx
-		0x1434 (f32)  Zy
-		0x1438 (f32)  Zz
-		0x143C (f32)  0
-	0x1440 (vec4) T
-		0x1440 (f32)  Xpos
-		0x1444 (f32)  Ypos
-		0x1448 (f32)  Zpos
-		0x144C (f32)  1
-0x1450 (mat4) ??? ref in 471760
-	0x1450 (vec4) X		
-		0x1450 (f32)  Xx
-		0x1454 (f32)  Xy
-		0x1458 (f32)  Xz
-		0x145C (f32)  0
-	0x1460 (vec4) Y
-		0x1460 (f32)  Yx
-		0x1464 (f32)  Yy
-		0x1468 (f32)  Yz
-		0x146C (f32)  0
-	0x1470 (vec4) Z
-		0x1470 (f32)  Zx
-		0x1474 (f32)  Zy
-		0x1478 (f32)  Zz
-		0x147C (f32)  0
-	0x1480 (vec4) T
-		0x1480 (f32)  Xpos
-		0x1484 (f32)  Ypos
-		0x1488 (f32)  Zpos
-		0x148C (f32)  1
-0x1490 (mat4) ??? ref in 471760
-	0x1490 (vec4) X		
-		0x1490 (f32)  Xx
-		0x1494 (f32)  Xy
-		0x1498 (f32)  Xz
-		0x149C (f32)  0
-	0x14A0 (vec4) Y
-		0x14A0 (f32)  Yx
-		0x14A4 (f32)  Yy
-		0x14A8 (f32)  Yz
-		0x14AC (f32)  0
-	0x14B0 (vec4) Z
-		0x14B0 (f32)  Zx
-		0x14B4 (f32)  Zy
-		0x14B8 (f32)  Zz
-		0x14BC (f32)  0
-	0x14C0 (vec4) T
-		0x14C0 (f32)  Xpos
-		0x14C4 (f32)  Ypos
-		0x14C8 (f32)  Zpos
-		0x14CC (f32)  1
-0x14D0 (mat4) ??? ref in 471760
-	0x14D0 (vec4) X		
-		0x14D0 (f32)  Xx
-		0x14D4 (f32)  Xy
-		0x14D8 (f32)  Xz
-		0x14DC (f32)  0
-	0x14E0 (vec4) Y
-		0x14E0 (f32)  Yx
-		0x14E4 (f32)  Yy
-		0x14E8 (f32)  Yz
-		0x14EC (f32)  0
-	0x14F0 (vec4) Z
-		0x14F0 (f32)  Zx
-		0x14F4 (f32)  Zy
-		0x14F8 (f32)  Zz
-		0x14FC (f32)  0
-	0x1500 (vec4) T
-		0x1500 (f32)  Xpos
-		0x1504 (f32)  Ypos
-		0x1508 (f32)  Zpos
-		0x150C (f32)  1
-0x1510
-0x1514
-0x1518
-0x151C
-0x1520
-0x1524
-0x1528
-0x152C
-0x1530
-0x1534
-0x1538
-0x153C
-0x1540
-0x1544
-0x1548
-0x154C
-0x1550
-0x1554
-0x1558
-0x155C
-0x1560
-0x1564
-0x1568
-0x156C
-0x1570
-0x1574
-0x1578
-0x157C
-0x1580
-0x1584
-0x1588
-0x158C
-0x1590
-0x1594
-0x1598
-0x159C
-0x15A0
-0x15A4
-0x15A8
-0x15AC
-0x15B0
-0x15B4
-0x15B8
-0x15BC
-0x15C0
-0x15C4
-0x15C8
-0x15CC
-0x15D0 ??? ref in 470610, possibly float
-0x15D4
-0x15D8
-0x15DC
-0x15E0
-0x15E4
-0x15E8
-0x15EC
-0x15F0
-0x15F4
-0x15F8
-0x15FC
-0x1600
-0x1604
-0x1608
-0x160C
-0x1610
+0x0344	(ptr)	swrModel_Node** Podd0x04
+		possibly model node vtable, or child node section of a parent node, see Callback0x20_470610
+		vtable:
+		  0: ?
+		  1: L engine
+		  2: R engine
+		  3: L engine 2 (ben only?)
+		  4: R engine 2 (ben only?)
+		  5: cockpit
+		  6: ?? energy binder 1/up? see fn_472750
+		  7: ?? engine 1? see fn_472750
+		  8: ?? energy binder 2/dn? see fn_472750
+		  9: ?? engine 2? see fn_472750
+		  28: exhaust flash 1
+		  29: exhaust fire 1
+		  42: exhaust flash 1
+		  43: exhaust fire 2
+		  60: pilot
+		  65: scrape spark 1
+		  66: scrape spark 2
+0x0348	(ptr)	swrModel_Node_Transformed* Podd0x04; ref in 470610
+0x034C	(ptr)	swrModel_Node_Selector* Podd0x04; ref in 470610
+0x0350	(mat4)	??
+0x0390	(mat4)	right engine transform
+0x03D0	(mat4)	left engine transform
+0x0410	(mat4)	right engine (upper) transform
+0x0450	(mat4)	left engine (upper) transform
+0x0490	(mat4)	cockpit transform
+0x04D0	(mat4)	Energy Binder transform (main binder; left lower to right upper on ben)
+0x0510	(mat4)	??
+0x0550	(mat4)	??
+0x0590	(mat4)	??
+0x05D0	(mat4)	see fn_471760, "spinout" state when you die with 1 engine gone
+0x0610	(mat4)	see fn_471760, another spinout one
+0x0650	(mat4)	see fn_471760
+0x0690	(mat4)	see fn_471760
+0x06D0	(mat4)	??
+0x0710	(mat4)	??
+0x0750	(mat4)	??
+0x0790	(mat4)	??
+0x07D0	(mat4)	??
+0x0810	(mat4)	??
+0x0850	(mat4)	??
+0x0890	(mat4)	??
+0x08D0	(mat4)	??
+0x0910	(mat4)	??
+0x0950	(mat4)	??
+0x0990	(mat4)	??
+0x09D0	(mat4)	??
+0x0A10	(mat4)	??
+0x0A50	(mat4)	??? ref in 46F2C0
+0x0A90	(mat4)	exhaust fire 1 (local transform?); the part that gets bigger when you boost, see 46F2C0
+0x0AD0	(mat4)	??
+0x0B10	(mat4)	??
+0x0B50	(mat4)	??
+0x0B90	(mat4)	??
+0x0BD0	(mat4)	?? Yy ref in 46BEC0??
+0x0C10	(mat4)	??
+0x0C50	(mat4)	??
+0x0C90	(mat4)	??
+0x0CD0	(mat4)	??
+0x0D10	(mat4)	??
+0x0D50	(mat4)	??
+0x0D90	(mat4)	??
+0x0DD0	(mat4)	??
+0x0E10	(mat4)	exhaust fire 2 (local transform?); the part that gets bigger when you boost, see 46F2C0
+0x0E50	(mat4)	??
+0x0E90	(mat4)	??
+0x0ED0	(mat4)	??
+0x0F10	(mat4)	??
+0x0F50	(mat4)	??
+0x0F90	(mat4)	??
+0x0FD0	(mat4)	??
+0x1010	(mat4)	??
+0x1050	(mat4)	??
+0x1090	(mat4)	??
+0x10D0	(mat4)	??
+0x1110	(mat4)	??
+0x1150	(mat4)	??
+0x1190	(mat4)	??
+0x11D0	(mat4)	??
+0x1210	(mat4)	??
+0x1250	(mat4)	??
+0x1290	(mat4)	?? Tz in this and next 3 set to -10000.0 in 479E10	
+0x12D0	(mat4)	?? shadow1?
+0x1310	(mat4)	?? shadow2?
+0x1350	(mat4)	??
+0x1390	(mat4)	scrape spark transform 1
+0x13D0	(mat4)	scrape spark transform 2
+0x1410	(mat4)	right engine exhaust transform
+0x1450	(mat4)	left engine exhaust transform
+0x1490	(mat4)	??? ref in 471760
+0x14D0	(mat4)	??? ref in 471760
+0x1510	(mat4)	??
+0x1550	(mat4)	??
+0x1590	(mat4)	??
+0x15D0	(mat4)	??
+0x1610	??	array of [3]f32 (vec3?), at least 48 items long; see fn_470510
 0x1614
 0x1618
 0x161C
@@ -1763,7 +558,7 @@ OFFSETS
 0x1840
 0x1844
 0x1848
-0x184C
+0x184C	.. potential last item of array starting at 0x1610
 0x1850
 0x1854
 0x1858
@@ -1845,8 +640,9 @@ OFFSETS
 0x1988
 0x198C
 0x1990
-0x1994
-0x1998 (???)  i32/u32 but converted to float in code
+0x1994 (ptr) swrModel_Node* ??
+0x1998	??	shortest distance from pod translation to group of vec3s at 0xE22820 (array length found at 0x50CCEC)
+		i32/u32 but converted to float in code
 		ref in 478D80_CalculateSpeed(), 46D170, 470610, 471760, 47B520; used with pos vec3
 0x199C
 0x19A0
@@ -1856,7 +652,7 @@ OFFSETS
 0x19B0
 0x19B4
 0x19B8
-0x19BC
+0x19BC	mat4?	18-item mat4 array?
 0x19C0
 0x19C4
 0x19C8

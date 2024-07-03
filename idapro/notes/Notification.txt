@@ -1,0 +1,37 @@
+TODO: merge with TextRendering.txt
+
+- adding "~_" to the start of the notification will show a flashing "-" next to the end of the notification
+- the notification can be formatted the same as any other string (but hi-res text can mess with the rendering location)
+- the optional "-" cannot be styled (i think)
+
+FUNCTIONS
+
+swrText_Notification_New_44FCE0(string: [*:0]u8, duration: f32) void
+swrText_Notification_Render_44FD50() void
+
+these seem to be used generally in the text rendering process, not just for notifications
+swrText_RenderSetColor_42D950(r: u8, g: u8, b: u8, a: u8) void
+swrText_RenderGetPos_42D930(x: *i16, y: *i16) void
+swrText_RenderSetPos_42D910(x: i16, y: i16) void
+swrText_RenderString_42EC50(string: [*:0]u8) void
+	- assumes all the SetColor, SetPos, etc. are already set
+	- seems to mutate those values in the process of rendering
+	- parses the string formatting along the way
+
+
+CONSTANTS
+
+50C770	[*:0]u8	Notification text
+50C870	u32	Flag to show extra flashing dash; set to 1 if beginning of notification text is "~_"
+44FCFB	u8	1st character of "~_" check
+44FD02	u8	2nd character of "~_" check
+4C3E40	f32	Notification duration/timer
+4C3E44	f32	Notification entry timer; causes fade-in at half duration
+44FD3F	f32	value the entry timer is set to when you queue a notification (1.0)
+50C874	f32	Notification dash flashing timer; flashes at 2bps/120bpm, loops automatically
+44FED4	f32	value the dash flashing timer is set to when it loops (1.0)
+4D5564	f32	?? often (always?) set in conjunction with new notif, usually set to 2.1 (0x40066666)
+
+50C0B8	[2]i16	X, Y position of rendering text
+4BFA0C	[4]u8	RGBA color of rendering text
+E99764	?	set to 0 when using Notification_SetColor_42D950 to set color

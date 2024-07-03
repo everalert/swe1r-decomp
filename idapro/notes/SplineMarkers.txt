@@ -1,0 +1,58 @@
+Jdge 0x10..0x28 (6) = pointers to spline marker Podd?
+
+void __cdecl UNK_DrawSplineMarkers_maybelol_45E970(ENTITY_JDGE *Jdge, RACEDATA *RaceData)
+      sub_431A50(*v8_pJdge0x10, 2, 3, 16, 2);
+    sub_42B640(*v8_pJdge0x10, -1, -1, 0, 255, 0, -1);// pPodd, ?, ?, R, G, B, A?
+
+
+void __cdecl Unk_Jdge__465510(ENTITY_JDGE *Jdge)
+- seems to be where spline markers are loaded into mem
+- pointer to loaded Podd written to Jdge+0x10 array at 0x46566F
+
+
+Unk_Model_SetFlagsInSomeSection_maybeidk_431A50(ptr, 2, -4, 16, 3);
+- setter for Podd state, similar to the Quad setting setters?
+- arg2 selects which flags to use
+- arg4 selects behaviour; 0x10=modify flags, 0x20=find deeper structure and try this fn again on that
+- arg5 selects how to modify the flags
+- arg3 is the value to modify flags with
+
+Unk_Model_SetColorEtcInSomeSection_maybeidk_42B640(v2_Test->unk254_ptr, 0, 0, 89, 140, 54, (__int64)((1.0 - v5) * 255.0));
+- pPodd, ?, ?, R?, G, B?, A?
+- 
+
+CopyMat4x3toUnkStruct_maybe_431640(*v8_pJdge0x10, (int)v6_pMat4x3_maybe);
+- pretty sure this is actually a Podd initializer or something
+- notes from earlier talk with LP seem to indicate Jdge0x10 points to a 'Podd mesh group node'
+
+Unk_GetDblPtrAddrFrom0x18_431790(ptr, mid_idx)
+- return [[ptr+0x18]+mid_idx*4]
+- used to get addr of item from 0x4000 case item table (see below)
+
+
+NOT SURE IF ANY OF THE ABOVE IS ACTUALLY PODD (actually pretty sure it's not, but it is loaded model data of some kind)
+
+JDGE_0x10 STRUCT (PoddMeshGroupNode?)
+seems to be recursive, structure depends on case indicated by 0x00
+
+(==0x3064 CASE)
+0x00	u32	flags/keyword
+0x0C	??	starting point of byte array? see fn_42B5E0
+0x14	u32	count of items to recursively read, calling fn_42B5E0
+0x18	ptr	pointer to table of pointers of the 0x14 items, could be more than dbl ptr depending on where in the recursion you are
+0x1C	mat4x3	truncated XYZT
+..
+..
+..
+..
+..
+..
+..
+..
+..
+..
+..
+0x4C	??
+0x50	??
+0x54	??
+0x58	[]ptr	typically, start of vtable pointed to by 0x18
