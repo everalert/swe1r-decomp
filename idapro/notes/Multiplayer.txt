@@ -1,0 +1,50 @@
+sub_41D6F0	seems to do some transfer of multiplayer state, maybe to transfer packet data into game state
+		- TODO: go through this to reconstruct multiplayer (packet?) racer state
+
+void __cdecl Unk_Multiplayer_CallbackBuildTable__41BA00()
+void __cdecl Unk_Multiplayer_CallbackSet__41B750(int Index, BOOL (__cdecl *pCallbackFn)(SWR_MULTIPLAYER*))
+BOOL __cdecl Unk_Multiplayer_CallbackRun__41B8F0(int a1)
+
+EA0200		around this address are arrays of different multiplayer-related pod state, looks like SOA
+
+0x4E9D18	ptr[100]	callback function vtable
+0x4E9EAC	???		?? some kind of flags
+0x4EA020	??		?? unk struct/array, 12-byte items;  see fn_41D690
+0xEA05C0	??		?? array of lava-related data, 16-byte items;  see fn_41D8D0, fn_41D930
+0xEA0720	??		?? unk struct/array, seems to be 1994-byte items;  see fn_41D6F0
+0xEC7BA0	SWR_MULTIPLAYER
+0x4D5E08	??		?? directplay 'player' value, fed into DirectPlay->DestroyPlayer
+
+0xE9F3C0	??[20]		?? in middle of first item of unk array, 176-byte items;  see fn_4210E0 and callers/adjacent
+
+
+SWR_MULTIPLAYER STRUCT
+- passed into arg1 of all callback functions
+- may not be a singleton
+- structure of this may change heavily depending on the 'id' of the callback
+0x0C	?	?? see fn_41B760
+0x14	?	?? see fn_41B760
+0x1C	?	?? see fn_41D2F0, fn_41B760
+0x24	i16?	?? index of callback fn;  see fn_41D1D0, fn_41D160, fn_41B8F0
+		- may also double as 'struct subtype' and could be used to determine the structure of the whole object
+		- seems to be the last 'header' field if that is the case
+		- passed into DirectPlay->Send arg5 in fn_486CA0 from fn_4047B0
+0x28	?	?? number of entries, 0x70-byte items starting at 0x2C  (fn_41D6F0, fn_41DCA0)
+0x2C	?	?? selected character?  see fn_41DCA0
+		- fn_41DCA0 links it to savefile character
+		- but it's used to index 0xEA05C0, which is indexed by RaceData.index in fn_41D8D0, fn_41D930
+		- used as event magic word in fn_41E260
+0x30	?	?? length of string? stored at 0x34;  see fn_41D600, fn_41D540, fn_41D160
+		- may not be string due to overlap with lower addresses, could just be putting the mp state into a buffer
+		- but could also be a clash of differing structure types handled by the same callback system
+0x34	?	?? unk, max length 0x80;  see fn_41D160
+0x38	?	?? see fn_41E620
+0x70	f32	speed  (fn_41D6F0)
+0x74	f32	lap completion  (fn_41D6F0)
+0x78	f32	lap completion max  (fn_41D6F0)
+0x7C	i32	current lap  (fn_41D6F0)
+0x80	i32[4]	?? lava related data, same as 0xEA05C0 array  (fn_41D6F0)
+0x90	i32	control string  (fn_41D6F0)
+0x94	i32	test entity flags 1  (fn_41D6F0)
+0x98	i32	test entity flags 2  (fn_41D6F0)
+0x9C	??	?? beginning of second item in array starting at 0x2C

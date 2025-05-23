@@ -1,0 +1,31 @@
+MFG research
+- only 2 places that position is written
+	- end of Test0x18(47AB40)
+	- grounded roll function fn_477C30 (called about 2/3 down cb1C)
+- seems like the magic is happening in Test_CalculateSpeed_478D80
+- Test+0x013C (model ptr) is the one that actually gets used for figuring out speed
+	- 0x140 used elsewhere, i think this confirms that a ref mismatch is at play?
+	- actually, seems 13C doesn't get updated at all, maybe it's the track root node?
+- Test_CheckCollision__477940 does detect collision when landing on mfg surface
+- fn_44ABC0 breaks on mfg past the fn_444D10 if clause
+	- rarely breaks on any collision, but does also break on the exe skip sticking spot
+- fn_4774F0 has the code that causes bounce
+
+
+FUNCTIONS
+
+0x4314F0    void GetPlaneFromVertices(COLLISION_PLANE *pPlane_out, VEC_3 *pVtxA, VEC_3 *pVtxB, VEC_3 *pVtxC)
+		- fills out a COLLISION_PLANE based on input verts
+
+
+COLLISION_PLANE
+0x00	vec3	plane normal; could be facing backward?
+0x0C	f32	distance from origin squared
+0x10 END
+
+COLLISION_RAY
+- basically a LOCATION with a distance value appended
+0x00	vec3	translation/position
+0x0C	vec3	normal
+0x18	f32	length
+0x1C END

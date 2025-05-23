@@ -16,115 +16,170 @@ CONSTANTS
 0x472CFA	jumptable for updating control surfaces in fn_472A50
 		see this fn for huge list of stuff in the 0x0344 model node vtable
 
+0x4AD780  f64	odds for putting out an engine segment fire (0.03)
 
-OFFSETS
+0x4C2598  Vec3	?? default 'down'/gravity direction  fn_4764A0
 
-0x0000 (str)	Entity Type string, known values: Test
-0x0004 (u32)	Entity system-related flags;  ref in 470610 sent to 431640
-0x0008 (vec3)	Spawn Position
-	0x0008 (f32)  X
-	0x000C (f32)  Y
-	0x0010 (f32)  Z
-0x0014 (f32)  Spawn value
-0x0018 ???  Spawn value, seems to be flags; ref in 450C00 
-0x001C ???  Spawn value, definitely related to the other spawn values (included in a memcpy)
-0x0020 (mat4)  transformation matrix
-0x0060 (u32)  Flags
-	@0..3	'racing status'? all cleared when countdown ends, except @01 (see fn_474D80 "Go!!")
-	1<<00  in countdown?
-	1<<01	in race (racing), stays on while driving;  turned on when countdown ends (see fn_474D80 "Go!!")
-			ref in 46CF00, checked to see if on while 00,02,03 are all off
-	1<<02  probably completion status related
-	1<<03  probably completion status related
-	1<<04  ??? ref in 470610; braking related
-			set to 1 when accelerating
-			will only go back to 0 when pressing brake at very low speed
-			will not go to 0 even at a standstill until you press brake
-			nor if you press brake before going slow enough (doesn't buffer)
-			only other time observed is when you die until you start accelerating again
-	1<<05  race not ended?
-		used to single out pods for skipping AI for triggers in fn_476AC0
-			set to 1 in prerace media cutscene, stays on throughout race until crossing line
-			referenced in 46CE30, 46CF00, 47B520, 479E10
-	1<<06  ??? referenced in 47FDD0_LapCompletion, 46CF00_CalcTargetTurnRate, 470610
-	1<<07  in autopilot
-	1<<08  ??? referenced in 46B670, 46D170; related to going backward timer 0x110
-	1<<09  is braking
-	1<<10  is repairing;  set on during postrace
-	1<<11	reset pod; turning this on will make you teleport to the spline
-		shows "ka-pow" text in UiDrawRace_462B20
-	1<<12  'respawn pod' from LP
-			turns on when in autopilot, race not finished and deathspeed triggered (lmao)  
-			refs in 46BEC0, 4611F0, 46D170, 40B150, 47B520, 47B000_DeathSpeedHandler
-			if you turn this on you die
-	1<<13  has respawn invincibility
-	1<<14  is dead
-	1<<15  ??? - referenced in 46B670, seems race completion-related
-	1<<16  ??? - referenced in 46B670, seems race completion-related
-	1<<17  reset pod at spline point (does not force death on its own); see cb14
-	1<<18  ??? ref in 47B520
-	1<<19  camera engine view
-	1<<20  camera looking back
-	1<<21  is able to charge boost
-	1<<22  ???  called from 4783E0_ApplyAcceleration(), 470610
-			locks thrust to 1.2 (from LP)
-			set on when boosting and unable to charge boost, in fn_46BD20 (boost charge fn)
-	1<<23  is boosting
-	1<<24  ???  is going uphill? sudden pitch change flag? ??? ref in 4774F0; gravity related
-	1<<25  in zon state;  not just on zon terrain, but presumably triggered by hitting zon terrain
-	1<<26  in 'zoff' state;  not just on zoff terrain
-			causes a hover state that automatically returns to 0 rotation with no input
-			stays on for the duration of the extended hover you sometimes get leaving tubes
-			presumably set by touching zoff terrain, but conditions not confirmed
-	1<<27  is stopped or stopping?
-			set on when at low but not necessarily 0 speed
-			similar to 1<<04 but the speed threshold seems a little higher
-	1<<28  ?? tested in speed function (from LP); see also fn_477850
-	1<<29  ?? paired with @28, see fn_477850
-	1<<30  ??? was boosting last frame
-	1<<31  ??? ref in 46BEC0, 41D930, 46D170, 477AD0; related to tilting, flags2 1<<27
-0x0064 (u32)  Flags
-	1<<00  on swamp terrain
-	1<<01  ??? ref in 46D170 
-	1<<02  is not accelerating
-	1<<03  is sliding? - confirmed directly switched on when airborne; also turns on with button?
-	1<<04  ???  related to sliding as a check unsure what difference is
-	1<<05  on side terrain;  seems to make AI manual tilt, also ref in 4783E0_ApplyAcceleration()
-	1<<06  on mirr terrain
-	1<<07  ??? elevation flag
-			BWR tunnel/ice field/under some arches
-			seems to activate when entering the loading area, not specific spots
-			AMR pre-canyon area
-			BEC 1st shortcut
-			SR/ABY start and end bridges
-			apparently tested in deathspeed function (from LP)
-			reset to 0 in terrain function (fn_476EA0)
-	1<<08  
-	1<<09  is airborne
-	1<<10  tilt disabled, aka "magnet mode"
-	1<<11  Boost Start Window;  ref in 45E200
-	1<<12  boost start cancel (from LP)
-	1<<13  boost start (from LP);  ref in 40B5E0 
-	1<<14  is exploding
-	1<<15  is exploding, right spinout
-	1<<16  is exploding, left spinout
-	1<<17  
-	1<<18  on lava terrain
-	1<<19  on fall terrain
-	1<<20  on soft terrain;  e.g. BC beach
-	1<<21  ?? turned on when respawn invinc wears out (cb1C), also written during track subsection load (see EXE+51B17)
-	1<<22  ??? ref in 479E10; set or unset based on 1<<23, 'condition for flat' from LP
-	1<<23  on flat terrain (from LP);  ref in 470610, 479E10
-	1<<24  ??? set on at start of race BTC
-	1<<25  race complete;  used for UI (from LP)
-	1<<26  ??? called from 46CF00, 470610, 47B520; related to turn rate and autopilot
-	1<<27  grounded? (from LP)
-			called from 4783E0_ApplyAccel, 41D930, 470610
-	1<<28  immunity? (from LP)
-			called from 4783E0_ApplyAccel, 46D170, 470610, 47B520, 47B000_DeathSpeed
-	1<<29  ??? ref in 47AB40, 47B520, 479E10, 47B000_DeathSpeedHandler
-	1<<30  
-	1<<31  ??? called from 4783E0_ApplyAcceleration()
+
+EVENTS
+TODO: explain/define each one
+
+__shortlist__
+Free
+Hitt
+	Botm
+	Bits
+	LtFt
+	LtSd
+	RtFt
+	RtSd
+	VhLt
+	T201
+	KPow
+Qery
+	1st?
+	2nd?
+	3rd?
+	CamP
+RmCn
+RmLc
+RmTh
+RmHi
+Snap
+sLOD
+RSet
+Load
+Go!!
+
+'Hitt' Event Payload
+0x00	'Hitt'
+0x04	'VhLt' ? have seen this qmemcpy with Hitt a lot, e.g. Test_UpdateScrapeSpark__479D40
+0x08	f32	base damage
+
+'Qery' Event Payload
+undetermined-length array of following; will iterate until parser does not see 'Qery' in 0x00
+0x00	'Qery'
+0x04	u8[4]	second magic, one of '1st?' '2nd?' '3rd?' 'CamP'
+0x08	union	output target of data depending on second magic
+		vec3* if CamP; raycast collision point above spline, or spline Z if miss
+		Test* if other; filled if target Test race position matches that indicated in magic
+
+'sLOD' Event Payload
+- short for Set LOD
+- associated data array around 0x4C7AB0, not sure actual starting addr
+	- 32-byte items
+	- cockpit and engine lod distances (float) start at 0x4C7AB8 and 0x4C7ABC respectively
+0x00	'sLOD'
+0x04	int	LOD data table index; either 0 (CfgVideoModeDetail=1) or 1 (any other) when called from Test_ResetEntity
+
+'Snap' Event Payload
+0x00	'Snap'
+0x04	i32	-1,0,1 depending on the direction to offset the respawn point up the spline
+
+
+
+TEST ENTITY
+0x0000	Entity Header; ref in 470610 sent to 431640
+0x0008	LOCATION	spawn location
+0x0020	mat4	transformation matrix
+0x0060	u32	Flags1
+	@0..3	'racing status' enum; different to jdge flags 0..3
+		  0	init/camsweep
+		  1	countdown
+		  2	racing/endrace
+		  .. seems to not have any other values
+	@04	is moving, i.e. is not fully stopped/parked
+		- ??? ref in 470610; braking related
+		- set to 1 when accelerating
+		- will only go back to 0 when pressing brake at very low speed
+		- will not go to 0 even at a standstill until you press brake
+		- nor if you press brake before going slow enough (doesn't buffer)
+		- only other time observed is when you die until you start accelerating again
+		- iirc this affects things like whether you have forced rotation while damaged (to confirm)
+	@05	is player controlled (Locl)
+	@06	is remote controlled (REMO)
+	@07	is AI controlled (AAII)
+	@08	character is track favorite; on if associated RaceData flags 0x20 is on
+		- ??? referenced in 46B670, 46D170; related to going backward timer 0x110
+		- also ref'd in fn_45EF70 (comp-related jdge fn)
+	@09	is braking
+	@10	is repairing;  set on during postrace
+	@11	queue pod reset with heal
+		- turning this on will make you teleport to the spline, and resets engine damage to 0.1
+		- increments respawn timer and then simply calls Test_DoRespawn__473F40 with 0.5 spline offset
+		- seems to be the 'respawn' for remote players in multiplayer
+		- shows "ka-pow" text in UiDrawRace_462B20
+	@12	queue pod respawn
+		- turns on when in autopilot, race not finished and deathspeed triggered (lmao)  
+		- refs in 46BEC0, 4611F0, 46D170, 40B150, 47B520, 47B000_DeathSpeedHandler
+		- if you turn this on you die
+	@13	has respawn invincibility
+	@14	is dead
+	@15	is one of two AI racers closest in total completion to leading player racer, and more than 0.1 comp away from finishing (fn_45D4A0)
+	@16	is one of two AI racers closest in total completion to losing player racer, and more than 0.1 comp away from finishing (fn_45D4A0)
+		- disabled if there is overlap with @15
+	@17	queue pod reset; same as @11 but no heal (cb14)
+	@18	?? set on if unk collision penetration vector derived value > 0, speed > 100 and 0x1A4 AccelThrust > 0.05 during track collision
+		- unsure of exact semantics; ref in 47B520, 479920
+	@19	camera engine view
+	@20	camera looking back
+	@21	is able to charge boost
+		- turned OFF when jdge flags & 0xF == 2 and race not completed, see fn_45EA30
+	@22	???
+		- locks thrust to 1.2 (from LP)
+		- set off when boosting and unable to charge boost, in fn_46BD20 (boost charge fn)
+	@23	is boosting
+		- turned OFF when jdge flags & 0xF == 2 and race not completed, see fn_45EA30
+	@24	collided with ground due to fall speed this frame (fn_4774F0)
+	@25	in 'zon' state;  not just on zon terrain
+	@26	in 'zoff' state;  not just on zoff terrain
+		- causes a hover state that automatically returns to 0 rotation with no input
+		- stays on for the duration of the extended hover you sometimes get leaving tubes
+		- presumably set by touching zoff terrain, but conditions not confirmed
+		- min. speed forced to 75 in ApplyAccel
+	@27	can fully stop (can 'park' pod)
+		- set on when at low but not necessarily 0 speed
+		- similar to 1<<04 but the speed threshold seems a little higher
+	@28	scrape spark 1 (0x1390) active (fn_477850)
+	@29	scrape spark 2 (0x13D0) active (fn_477850)
+	@30	was boosting last frame
+	@31	?? turned off in fn_46BEC0(DoPlayerControls) unconditionally
+0x0064 (u32)  Flags2
+	@00	on swamp terrain
+	@01	distance cull REMO or AAII in grav tube (1000 units) (fn_47A200)
+	@02	is not accelerating
+	@03	is sliding? - confirmed directly switched on when airborne; also turns on with button?
+	@04	hit by tusken raider shot (fn_47A3A0)
+	@05	on side terrain;  seems to make AI manual tilt, also ref in 4783E0_ApplyAcceleration()
+	@06	on mirr terrain
+	@07	on overlapping collision;  terrain marked as overlapping, will prevent mfg (fn_476EA0, fn_4772F0)
+	@08	
+	@09	is airborne
+		- distance to ground > 30 units, see fn_4774F0
+	@10	tilt disabled, aka "magnet mode"
+		- cuts turn rate in half just like tilting
+	@11	in boost start window
+	@12	boost start attempted
+	@13	boost start active
+	@14	is exploding
+	@15	is exploding, right spinout (fn_4741D0)
+	@16	is exploding, left spinout
+	@17	?? turned off in fn_46D170(cb14)
+	@18	on lava terrain
+	@19	on fall terrain
+	@20	on soft terrain;  e.g. BC beach
+	@21	?? turned on when respawn invinc wears out (cb1C), also written during track subsection load (see fn_451A80 @ 451B17)
+	@22	on flat terrain for more than one frame; if this and @23 on then normal ground checking skipped, see fn479E10
+	@23	on flat terrain; only turned on when AI-controlled and flg2 @26 off;  ref in 470610, 479E10, 476EA0
+	@24	is close to camera; within 50 units (fn_471760)
+	@25	race finished;  used for UI (from LP)
+		- turned ON when jdge flags & 0xF == 2 and race not completed, see fn_45EA30
+	@26	AI-controlled player; player racer that completed race (fn_45EA30)
+	@27	is close to ground; within 15 units (fn_4783E0)
+	@28	skip death speed checks (fn_47B000)
+	@29	?? on zon terrain (yes, a second one); ref in 47AB40, 47B520, 479E10, 47B000_DeathSpeedHandler
+	@30	
+	@31
 0x0068
 0x006C  Stats
 	0x006C (f32)  AntiSkid
@@ -164,794 +219,263 @@ OFFSETS
 0x00E0 (f32)  Lap completion (current)
 0x00E4 (f32)  Lap completion (last frame)
 0x00E8 (f32)  Lap completion (max)
-0x00EC (ptr) swrModel_Node* (maybe NodeTransformed)
+0x00EC	ptr	swrModel_Mesh* associated with spline point at current lap completion
 			ref in 47AB40, 479E10, 47FBB0, 47FFB0
 			turning related, copied into 0x140; lap timing/completion related
 			involved in dist2ground calc, see fn_4772F0
-			may be model node associated with the nearest spline point, see 47FFB0
-0x00F0 ???  ref in 471760; checking this val in next enginedata ???
+0x00F0	ptr	swrModel_Mesh* previous 0xEC value
+			ref in 471760; checking this val in next enginedata ???
 			ref in 47FFB0, lap timing/completion related
-0x00F4 ???  ref in 47FFB0, lap timing/completion related
-0x00F8 ???  ref in 47FFB0, lap timing/completion related
-0x00FC ???  ref in 470610, related to next enginedata, values in range 0x0FC-0x1F8 passed into 431640 ???  ref in 47FFB0, lap timing/completion related
-0x0100 ???  ref in 47FFB0, lap timing/completion related
+			see also 0x1F24
+0x00F4 ???  ref in 47FFB0, lap timing/completion related, set to 0 in 47FBB0
+0x00F8 ???  ref in 47FFB0, lap timing/completion related, set to 0 in 47FBB0
+0x00FC ???  ref in 470610, related to next enginedata, values in range 0x0FC-0x1F8 passed into 431640 ???  ref in 47FFB0, lap timing/completion related, set to 0 in 47FBB0
+0x0100 ???  ref in 47FFB0, lap timing/completion related, set to 0 in 47FBB0
 0x0104	f32	?? lap progress offset, ref in 47A610, clamped between 0.01 and 2.00
 0x0108	f32	AI Lookahead Squared ?? distance to spline, informs 0x104; see fn_46AF20, fn_429DC0
-0x010C ???  ref in 47FFB0, lap timing/completion related
-0x0110 (f32)  ticks up when following addr <= 8; see func 47FDD0
-0x0114 (i32)  resets to 0 when going backward on track, and tick up to max 200 when moving fwd
+0x010C	i16?	?? seems to be 'going backward' timer/counter; ref in 47FFB0, lap timing/completion related
+		seems to be more like counting spline points moved backward through (see fn_47F8E0), not sure exactly
+0x010E	i16?	ref in 47FFB0, lap timing/completion related
+		seems to only ever be 1, 0, or -1
+		calculated from fn_47FBB0
+0x0110	f32	ticks up when following addr <= 8; see func 47FDD0
+0x0114	i32	resets to 0 when going backward on track, and tick up to max 200 when moving fwd
 0x0118	vec3	?? see fn_47FCA0
-0x0124	f32?	?? see fn_47FCA0
-0x0128
-0x012C
-0x0130 ???  referenced in 46CE30, related to 0x22C "stat multiplier"
-0x0134
-0x0138 ???  referenced in 46B670, seems race completion-related
-0x013C	ptr	?? swrModel_Node* (maybe NodeTransformed); involved in dist2ground calc, see fn_4772F0
-0x0140 (ptr) swrModel_Node*
+0x0124	f32	distance to spline
+0x0128	f32	?? total completion delta first place? (fn_45D4A0)
+0x012C	f32	?? total completion delta track favorite? (fn_45D4A0)
+0x0130	f32	total completion p1 delta (fn_45D4A0); related to "stat multiplier"
+		- these seem to fall back to comparing to AI racers if humans not available?
+0x0134	f32	total completion p2 delta (fn_45D4A0)
+0x0138	??	?? referenced in 46B670, seems race completion-related
+COLLISION RELATED BLOCK STARTS HERE?
+0x013C	ptr	swrModel_Node* track model root node
+0x0140 (ptr) swrModel_Mesh*
 		note for Tim: maybe not swrModel_Node, usage in fn_476EA0 seems to not align with def
+		appears to be the actual node you're currently on, matches 0xEC when following track
+		updated often, probably section of track model treated as 'current ground'
 		terrain-related pointer
 		struct+0x2C = terrain flags, see fn_46FD60 for parsing stuff
 		ref in 462A70, 47AB40, 471760, 479E10, 47FBB0, 451A80; pointer?
 		turning related, race complete related?
-0x0144 (vec3)	?? see Unk_Test__479D40
-0x0148	..
-0x014C	..
-0x0150 (f32)  ??? Speed loss this frame, in "rendered" units; used in functions that call 47B000_DeathSpeedHandler()
-0x0154	vec3	New Velocity; new motion vector after integrating slide etc.
+0x0144	vec3	Opponent Collision Normal; i.e. the direction toward the colliding pod from self origin, see fn_47B0C0
+0x0150	f32	Opponent Collision Speed Loss; see fn_47B0C0
+0x0154	vec3	?? next position delta? dif between two stages of next position calculation
+		written in Test_CalculateSpeed_478D80, read in Test_CalculateVerticalMotion_maybe_479E10
+		always 0 if on FLAT terrain; but, seems to almost always calculate to 0 anyway?
+		OLD (false) - New Velocity; new motion vector after integrating slide etc.
 0x0160 (vec3)	probably dynamic down vector used in tubes? gravity related;  ref in 4774F0, 479E10, copied into and from transform matrix Z vec3
 	0x0160 (f32)  X;  'down x' from LP?
 	0x0164 (f32)  Y;  'down y' from LP?
 	0x0168 (f32)  Z;  'down z' from LP?
 0x016C (vec3)	Prev Frame Position?  ref in 47B520
 0x0178 (vec3)	Death Position;  ref in 46CF00
-0x0184 (f32)	??? seems to be vertical motion, including lift from bobbing
+0x0184 (f32)	??? seems to be vertical height offset to 'neutral' ground position
+			not the ground itself, but a couple of units above; presumably a 'nominal hover height'
 0x0188 (f32)	??? seems to be Zpos of ground under pod
 0x018C (f32)	'thrust' according to LP
-0x0190 (f32)	gravity multiplier?  according to LP docs
-0x0194 (vec3)  probably static UP vector used outside of tubes, see Unk_Test_HandleDistanceToGround_4774F0
-	0x0194 'down x' from LP?  ref in 4791D0, 4774F0, 47AB40, 477AD0; gravity related
-	0x0198 'down y' from LP? ref in 4791D0, 4774F0; gravity related
-	0x019C 'down z' from LP? ref in 4791D0, 4774F0; gravity related
+0x0190	f32	gravity strength  (fn_4764A0)
+0x0194	vec3	gravity direction  (fn_4774F0, fn_4764A0)
 0x01A0	f32	speed
 0x01A4	f32	speed accel component
 		up while accelerating, down with offthrottle, behaves a bit like a counter
 0x01A8	f32	speed boost component; similar behaviour to above
-0x01AC		'speed multiplier' from LP
+0x01AC		'speed multiplier' from LP (derived from stat multiplier)
 		referenced in 46CE30, 46CF00; turn rate related, used with 0x22C stat multiplier
-0x01B0	???	ref in 4774F0; gravity related, to do with bobbing; 'fall float rate' according to LP
-0x01B4	???	ref in 4774F0; gravity related, to do with bobbing; 'fall float value' according to LP
+0x01B0	f32	?? fall speed, 'fall float rate' from LP (fn_4774F0)
+0x01B4	f32	?? fall distance, 'fall float value' from LP (fn_4774F0)
 0x01B8	vec3	Velocity; motion vector
 0x01C4	vec3	Slope Speed
-0x01D0	vec3	Collision Speed
-0x01DC	vec3	Opponent Collision Speed
-0x01E8 (f32)  Slide multiplier;  (0-1; transitions based on input)
-0x01EC (f32)  Current turn rate
-0x01F0 (f32)  Target turn rate
-0x01F4	f32	'turning modifier' from LP, forced turn from touching walls (maybe also from red damage?); determines which side to spin in fn_47B000 (death speed fn); see also fn_47AB40
-0x01F8 ??? ref in 47AB40, 4791D0, related to slope speed (0x1C4)?
-0x01FC ??? ref in 47AB40
-0x0200 (f32)  Target tilt angle;  this set of values seems to be only for non-ZOn tilting 
-0x0204 (f32)  Current tilt angle;  if already full turning one way then press manual tilt, pod seems to go back to 0 tilt first rather than directly from existing tilt; why?
-0x0208 (f32)  Manual tilt multiplier;  (-1.0 to 1.0)
-0x020C
-0x0210 (u32)  Boost charge status (0=idle, 1=charging, 2=ready)
-0x0214 (f32)  Boost charge timer
-0x0218 (f32)  Engine temperature (0-100; 0 = overheating)
-0x021C (f32)  Gravity Tube Angle
-0x0220 ???  ref in 47A610
-0x0224 ??? - ref in 46BEC0, next to maxturnrate
-0x0228
-0x022C (f32)  ??? "stat multiplier" from LP
-0x0230 ??? - AI level?? referenced in 46B670, seems race completion-related
-0x0234 ??? - referenced in 46B670, seems race completion-related; used with frametime
-0x0238
-0x023C
-0x0240 (f32)  Speed offset (fast terrain)
-	used in 4783E0_ApplyAcceleration()
-0x0244 (f32)  Speed multiplier (terrain)
-0x0248 (f32)  Traction multiplier (ice)
-0x024C (f32)  Traction multiplier (general/slide)
-				0.80 off-throttle
-				0.45 slide				
+0x01D0	vec3	Collision Slowdown; residual speed loss from track collision, see fn_479920, fn_478D80
+0x01DC	vec3	Opponent Collision Slowdown; residual speed loss from opponent collision, see fn_47B0C0, fn_478D80
+0x01E8	f32	Slide multiplier;  (0-1; transitions based on input)
+0x01EC	f32	Current turn rate
+0x01F0	f32	Target turn rate
+0x01F4	f32	'turning modifier' from LP, forced turn from touching walls (maybe also from red damage?)
+		- determines which side to spin in fn_47B000 (death speed fn); see also fn_47AB40
+0x01F8	f32	?? calculated in fn_479550 or fn_4791D0 depending on 'magnet mode' flag
+		- ref in cb18(fn_47AB40); added to 0x1FC
+0x01FC	f32	?? turning offset from tusken shots? ref in cb18, fn_47A3A0; time-based value, updated when flags2@4 on
+0x0200	f32	Target tilt angle;  this set of values seems to be only for non-ZOn tilting 
+0x0204	f32	Current tilt angle;  if already full turning one way then press manual tilt, pod seems to go back to 0 tilt first rather than directly from existing tilt; why?
+0x0208	f32	Manual tilt multiplier;  (-1.0 to 1.0)
+0x020C	??	?? ref in init fn
+0x0210	u32	Boost charge status (0=idle, 1=charging, 2=ready)
+0x0214	f32	Boost charge timer
+0x0218	f32	Engine temperature (0-100; 0 = overheating)
+0x021C	f32	Gravity Tube Angle
+0x0220	f32	?? ref in 47A610, 47AB40(cb18); turn response related, may be incremental response
+0x0224	f32	?? ref in cb18, overrides 0x220 sometimes; ref in 46BEC0, next to maxturnrate; seems to be a max val
+0x0228	f32	?? zoff-related, see Test_TerrainHandler_476EA0
+0x022C	f32	?? "stat multiplier" from LP
+0x0230	??	?? AI level?  ref in 46B670, seems race completion-related
+0x0234	f32	?? ref in fn_46B670, seems race completion-related; used with frametime
+0x0238	int?	?? seems to just be 0, because the init stuff doesnt put anything in the input??? need to confirm ingame
+		if it actually were set, it should be based on the jdge racer index
+0x023C	int?	?? set based on 0x238 during init, maybe a 'prev'-type in practice
+0x0240	f32	Speed offset (fast terrain)
+		used in 4783E0_ApplyAcceleration()
+0x0244	f32	Speed multiplier (terrain)
+0x0248	f32	Traction multiplier (ice)
+0x024C	f32	Traction multiplier (general/slide);  x0.80 off-throttle, x0.45 slide				
 0x0250	f32	visual z-offset; ref in 471760, 46D6A0
-0x0254	(ptr)	swrModel_Node_Transformed*; green arrow
-0x0258	(vec3)	green arrow target position
-0x0264 ??? - ref in 46BEC0; next to pitch factor
-0x0268	f32	?? sebulba flamethrower timer? set to 15 in fn_46BA30; see also fn_46D170, used with frametime
-0x026C  'level collision toggles' from LP;  referred to by 47B520(), 47AB40
-0x0270 (f32[6])  Engine Segment Lowest Health  (0-1)
-	0x0270 (f32)  TL
-	0x0274 (f32)  ML
-	0x0278 (f32)  BL
-	0x027C (f32)  TR
-	0x0280 (f32)  MR
-	0x0284 (f32)  BR
-0x0288 (f32[6])  Engine Segment Current Health
-	0x0288 (f32)  TL
-	0x028C (f32)  ML
-	0x0290 (f32)  BL
-	0x0294 (f32)  TR
-	0x0298 (f32)  MR
-	0x029C (f32)  BR
-0x02A0 (u32[6])  Engine Segment Status Flags;  used in 474CD0_ApplyEngineDamage() and 46AB10_RepairHandler()
-		1<<0 UI flashing from damage/invuln? ref in 474CD0; "damage" from LP
-		1<<1 ??? ref in 4611F0; "blink" from LP
-		1<<2 repairing;  1<<2..4 used for invuln related flag? 
-			refs in 4611F0, 46A9C0
-		1<<3 on fire; ref in 4611F0
-		1<<4 ??? ref in 46AA30, 4611F0; "lean" from LP
-	0x02A0 (u32)  TL
-	0x02A4 (u32)  ML
-	0x02A8 (u32)  BL
-	0x02AC (u32)  TR
-	0x02B0 (u32)  MR
-	0x02B4 (u32)  BR
-0x02B8	f32	??? ref in 4611F0, 47AD80, 47AD80(cb24)
-		damage related, used with dmgflags 1<<0, invincibility related; 'rumble' from LP 
+0x0254	ptr	swrModel_Node_Transformed*; green arrow
+0x0258	vec3	green arrow target position
+0x0264	f32	?? ref in 46BEC0; next to pitch factor
+		- ref in fn_46D170(cb14), used as timer, turns on flags1@04 (is moving) when expired
+0x0268	f32	?? sebulba flamethrower timer? set to 15 in fn_46BA30; see also fn_46D170(cb14), used with frametime
+		- seems to be cooldown timer; only counts down when flamethrower ref 0
+0x026C	u32	'level collision toggles' from LP;  referred to by 47B520(), 47AB40
+0x0270	f32[6]	Engine Segment Lowest Health (0-1);  order: TL, ML, BL, TR, MR, BR
+0x0288	f32[6]	Engine Segment Current Health
+0x02A0	u32[6]	Engine Segment Status Flags;  (fn_4611F0, fn_46A9C0, fn_474CD0, fn_46AB10, fn_46AA30)
+		@00 recently damaged;  will cause 'scrape blinking' to show and turn off when hitt timer expires
+		@01 blinking;  toggled every frame
+		@02 repairing
+		@03 on fire
+		@04 extinguishing
+0x02B8	f32	?? hitt cooldown for showing engine ui? (fn_4611F0(draw_engine_ui), fn_47AD80(cb24))
+		- set in Hitt event
+		- 'rumble' from LP - ??
 0x02BC	f32	Repair Timer
 0x02C0	f32	Damage Warning Timer
 0x02C4	f32	Total accumulated damage
 0x02C8	f32	Fall/OOB timer
 0x02CC	vec3	Next Position?
 0x02D8	vec3	Next Rotation?
-0x02E4	vec3	Next Rotation Delta? manual tilt rotation vector?
-0x02F0
-0x02F4 ??? - ref in 46BEC0; global total_time written here
-0x02F8
-0x02FC	f32	Pitch input;  -0.8 to 0.8
+0x02E4	vec3	?? Next Rotation Delta? manual tilt rotation vector?
+		may be delta rotation between up and pod orientation (fn_476390 callsite)
+0x02F0	??	?? ref in init fn
+0x02F4	f32	?? total_time timestamp for button down of input bitset 1<<07 (fn_46BEC0)
+		- sets bool on in fn if held for > 0.5s
+		- increments byte 0x2F8[1] if held for > 0.25s
+0x02F8	??	?? ref in init fn, ref in fn_46BEC0
+		- causes taunt if byte 0x2F9 > 1
+0x02FC	f32	Pitch input;  -0.8 to 0.8, positive is nose down
 0x0300	i32	RaceData index
-0x0304	u32	?? used to determine lighting behaviour in fn_451160
-0x0308	f32	?? unk timer; used in 47B520()
-0x030C	f32	Respawn invincibility timer
+0x0304	u32	?? used to determine lighting behaviour in fn_451160, set to 0 if player slot 0, otherwise 2
+0x0308	f32	?? unk timer; decremented in cb1C
+0x030C	f32	death respawn timer (explosion); used for both respawning and post-respawn invincibility (from respawn/death)
 		also prevents boost charge, set in 452600
 		ref in 47B520, 470610
-0x0310		?? ref in fn_46D040, fn_4741D0; related to death by speed
+0x0310	f32	?? death spinout timer
+		ref in fn_46D040; counts timer down, called in cb14 when flags1@11 (reset pod) on
+		ref in fn_4741D0 (explode spinout, rng 2.0..3.0); 
+		in cb1C, if flags1@14 on, decrements timer and sets flags1@12 (respawn pod) on when timer expires
 0x0314	[2]ptr	?? smok entities; see fn_46F9A0, probably engine fire effect
 0x031C	ptr	smok entity (sebulba flamethrower effect?); see fn_46BA30
-0x0320
-0x0324
-0x0328
-0x032C
+0x0320	??	?? ref in init fn
+0x0324	int	bits (ring) explosion index; 1 or 2, resolves to pod model node index*16, i.e. 16 or 32 (fn_46EBF0, fn_46E950)
+0x0328	??	?? ref in init fn
+0x032C	??	?? ref in init fn
 0x0330	f32	Engine exhaust size (left)
 0x0334	f32	Engine exhaust size (right)
-0x0338	vec3	?? see fn_46DEA0
-0x033C
-0x0340
-0x0344	(ptr)	swrModel_Node** Podd0x04
-		possibly model node vtable, or child node section of a parent node, see Callback0x20_470610
+0x0338	f32	spinout engine angle  (fn_46DEA0)
+0x033C	f32	spinout cockpit angle  (fn_46DEA0)
+0x0340	f32	spinout animation timer  (fn_46DEA0)
+0x0344	(ptr)	swrModel_Node** pod model node array (node group?); 75 items
+		- pivot vectors for control surfaces: X-axis = up/dn, Y-axis = left/right, Z-axis = fwd/back
 		vtable:
-		  0: ?
-		  1: L engine
-		  2: R engine
-		  3: L engine 2 (ben only?)
-		  4: R engine 2 (ben only?)
-		  5: cockpit
-		  6: ?? energy binder 1/up? see fn_472750
-		  7: ?? engine 1? see fn_472750
-		  8: ?? energy binder 2/dn? see fn_472750
-		  9: ?? engine 2? see fn_472750
-		  28: exhaust flash 1
-		  29: exhaust fire 1
-		  42: exhaust flash 1
-		  43: exhaust fire 2
-		  60: pilot
-		  65: scrape spark 1
-		  66: scrape spark 2
-0x0348	(ptr)	swrModel_Node_Transformed* Podd0x04; ref in 470610
-0x034C	(ptr)	swrModel_Node_Selector* Podd0x04; ref in 470610
-0x0350	(mat4)	??
-0x0390	(mat4)	right engine transform
-0x03D0	(mat4)	left engine transform
-0x0410	(mat4)	right engine (upper) transform
-0x0450	(mat4)	left engine (upper) transform
-0x0490	(mat4)	cockpit transform
-0x04D0	(mat4)	Energy Binder transform (main binder; left lower to right upper on ben)
-0x0510	(mat4)	??
-0x0550	(mat4)	??
-0x0590	(mat4)	??
-0x05D0	(mat4)	see fn_471760, "spinout" state when you die with 1 engine gone
-0x0610	(mat4)	see fn_471760, another spinout one
-0x0650	(mat4)	see fn_471760
-0x0690	(mat4)	see fn_471760
-0x06D0	(mat4)	??
-0x0710	(mat4)	??
-0x0750	(mat4)	??
-0x0790	(mat4)	??
-0x07D0	(mat4)	??
-0x0810	(mat4)	??
-0x0850	(mat4)	??
-0x0890	(mat4)	??
-0x08D0	(mat4)	??
-0x0910	(mat4)	??
-0x0950	(mat4)	??
-0x0990	(mat4)	??
-0x09D0	(mat4)	??
-0x0A10	(mat4)	??
-0x0A50	(mat4)	??? ref in 46F2C0
-0x0A90	(mat4)	exhaust fire 1 (local transform?); the part that gets bigger when you boost, see 46F2C0
-0x0AD0	(mat4)	??
-0x0B10	(mat4)	??
-0x0B50	(mat4)	??
-0x0B90	(mat4)	??
-0x0BD0	(mat4)	?? Yy ref in 46BEC0??
-0x0C10	(mat4)	??
-0x0C50	(mat4)	??
-0x0C90	(mat4)	??
-0x0CD0	(mat4)	??
-0x0D10	(mat4)	??
-0x0D50	(mat4)	??
-0x0D90	(mat4)	??
-0x0DD0	(mat4)	??
-0x0E10	(mat4)	exhaust fire 2 (local transform?); the part that gets bigger when you boost, see 46F2C0
-0x0E50	(mat4)	??
-0x0E90	(mat4)	??
-0x0ED0	(mat4)	??
-0x0F10	(mat4)	??
-0x0F50	(mat4)	??
-0x0F90	(mat4)	??
-0x0FD0	(mat4)	??
-0x1010	(mat4)	??
-0x1050	(mat4)	??
-0x1090	(mat4)	??
-0x10D0	(mat4)	??
-0x1110	(mat4)	??
-0x1150	(mat4)	??
-0x1190	(mat4)	??
-0x11D0	(mat4)	??
-0x1210	(mat4)	??
-0x1250	(mat4)	??
-0x1290	(mat4)	?? Tz in this and next 3 set to -10000.0 in 479E10	
-0x12D0	(mat4)	?? shadow1?
-0x1310	(mat4)	?? shadow2?
-0x1350	(mat4)	??
-0x1390	(mat4)	scrape spark transform 1
-0x13D0	(mat4)	scrape spark transform 2
-0x1410	(mat4)	right engine exhaust transform
-0x1450	(mat4)	left engine exhaust transform
-0x1490	(mat4)	??? ref in 471760
-0x14D0	(mat4)	??? ref in 471760
-0x1510	(mat4)	??
-0x1550	(mat4)	??
-0x1590	(mat4)	??
-0x15D0	(mat4)	??
-0x1610	??	array of [3]f32 (vec3?), at least 48 items long; see fn_470510
-0x1614
-0x1618
-0x161C
-0x1620
-0x1624
-0x1628
-0x162C
-0x1630
-0x1634
-0x1638
-0x163C
-0x1640
-0x1644
-0x1648
-0x164C
-0x1650
-0x1654
-0x1658
-0x165C
-0x1660
-0x1664
-0x1668
-0x166C
-0x1670
-0x1674
-0x1678
-0x167C
-0x1680
-0x1684
-0x1688
-0x168C
-0x1690
-0x1694
-0x1698
-0x169C
-0x16A0
-0x16A4
-0x16A8
-0x16AC
-0x16B0
-0x16B4
-0x16B8
-0x16BC
-0x16C0
-0x16C4
-0x16C8
-0x16CC
-0x16D0
-0x16D4
-0x16D8
-0x16DC
-0x16E0
-0x16E4
-0x16E8
-0x16EC
-0x16F0
-0x16F4
-0x16F8
-0x16FC
-0x1700
-0x1704
-0x1708
-0x170C
-0x1710
-0x1714
-0x1718
-0x171C
-0x1720
-0x1724
-0x1728
-0x172C
-0x1730
-0x1734
-0x1738
-0x173C
-0x1740
-0x1744
-0x1748
-0x174C
-0x1750
-0x1754
-0x1758
-0x175C
-0x1760
-0x1764
-0x1768
-0x176C
-0x1770
-0x1774
-0x1778
-0x177C
-0x1780
-0x1784
-0x1788
-0x178C
-0x1790
-0x1794
-0x1798
-0x179C
-0x17A0
-0x17A4
-0x17A8
-0x17AC
-0x17B0
-0x17B4
-0x17B8
-0x17BC
-0x17C0
-0x17C4
-0x17C8
-0x17CC
-0x17D0
-0x17D4
-0x17D8
-0x17DC
-0x17E0
-0x17E4
-0x17E8
-0x17EC
-0x17F0
-0x17F4
-0x17F8
-0x17FC
-0x1800
-0x1804
-0x1808
-0x180C
-0x1810
-0x1814
-0x1818
-0x181C
-0x1820
-0x1824
-0x1828
-0x182C
-0x1830
-0x1834
-0x1838
-0x183C
-0x1840
-0x1844
-0x1848
-0x184C	.. potential last item of array starting at 0x1610
-0x1850
-0x1854
-0x1858
-0x185C
-0x1860
-0x1864
-0x1868
-0x186C
-0x1870
-0x1874
-0x1878
-0x187C
-0x1880
-0x1884
-0x1888
-0x188C
-0x1890
-0x1894
-0x1898
-0x189C
-0x18A0
-0x18A4
-0x18A8
-0x18AC
-0x18B0
-0x18B4
-0x18B8
-0x18BC
-0x18C0
-0x18C4
-0x18C8
-0x18CC
-0x18D0
-0x18D4
-0x18D8
-0x18DC
-0x18E0
-0x18E4
-0x18E8
-0x18EC
-0x18F0
-0x18F4
-0x18F8
-0x18FC
-0x1900
-0x1904
-0x1908
-0x190C
-0x1910
-0x1914
-0x1918
-0x191C
-0x1920
-0x1924
-0x1928
-0x192C
-0x1930
-0x1934
-0x1938
-0x193C
-0x1940
-0x1944
-0x1948
-0x194C
-0x1950
-0x1954
-0x1958
-0x195C
-0x1960
-0x1964
-0x1968
-0x196C
-0x1970
-0x1974
-0x1978
-0x197C
-0x1980
-0x1984
-0x1988
-0x198C
-0x1990
-0x1994 (ptr) swrModel_Node* ??
-0x1998	??	shortest distance from pod translation to group of vec3s at 0xE22820 (array length found at 0x50CCEC)
-		i32/u32 but converted to float in code
-		ref in 478D80_CalculateSpeed(), 46D170, 470610, 471760, 47B520; used with pos vec3
-0x199C
-0x19A0
-0x19A4
-0x19A8
-0x19AC
+		  0	?? root node? ref in fn_470AE0
+		  1	R engine (side confirmed)
+		  2	L engine
+		  3	R engine 2 (upper)
+		  4	L engine 2 (upper)
+		  5	cockpit
+		  6	energy binder 1 scale; no visuals, parent to 7 in node tree
+		  7	energy binder 1 (fn_465980)
+		  8	energy binder 2 scale; no visuals, parent to 9 in node tree
+		  9	energy binder 2 (fn_465980)
+		  10	R cable 1 transform (fn_471760); parent to actual mesh, verified side
+		  11	L cable 1 transform (fn_471760); parent to actual mesh, verified side
+		  12	R cable 2 transform (upper) (fn_471760) (verified side);  child seems to refer to same underlying mesh as 10
+		  13	L cable 2 transform (upper) (fn_471760) (verified side);  child seems to refer to same underlying mesh as 11
+		  14	?? parent node to engine R? node tree, transformable (from LP), -> 31; ref in fn_46D4C0
+		  15	?? parent node to engine L? node tree, transformable (from LP), -> 17; ref in fn_46D4C0
+		  16	?? parent node to cockpit node tree, transformable (from LP), -> 45; ref in fn_46D4C0; mat4 used as basis for bits explosion index 1
+		  17
+		  18	control surface - unk mars, unk maw, unk anakin, unk beedo, unk bozzie, unk elan, unk teemto, unk dud, unk sebulba, wan engine L (side confirmed), unk ratts
+		  19	control surface - unk mars, unk maw, unk anakin, unk beedo, unk bozzie, unk elan, unk teemto, unk dud, sebulba engine L inner (side confirmed)
+		  20	control surface - unk mars, unk maw, unk anakin, unk beedo, unk bozzie, unk elan, unk teemto
+		  21	control surface - unk mars, unk maw, unk anakin, unk beedo, bozzie engine L bottom left (side confirmed), unk elan
+		  22	control surface - unk neva, unk maw, unk anakin
+		  23	control surface - unk neva
+		  24	control surface - unk neva
+		  25	control surface - unk neva
+		  26	control surface - unk neva
+		  27	control surface - neva kee engine L top left (side confirmed)
+		  28	exhaust fire flash (left); the flashing 'ring', both top and bottom on ben, verified pair left side
+		  29	exhaust fire burner (left); the part that gets long when you boost, both top and bottom on ben
+		  30
+		  31
+		  32	control surface - unk mars, unk maw, unk anakin, unk beedo, unk bozzie, unk elan, unk teemto, unk dud, unk sebulba, wan engine R (side confirmed), unk ratts
+			mat4 used as basis for bits explosion index 2
+		  33	control surface - unk mars, unk maw, unk anakin, unk beedo, unk bozzie, unk elan, unk teemto, unk dud, unk sebulba
+		  34	control surface - unk mars, unk maw, unk anakin, unk beedo, unk bozzie, unk elan, unk teemto; Yy ref in 46BEC0??
+		  35	control surface - mars engine R left flap, unk maw, unk anakin, unk beedo, unk bozzie, unk elan (couldn't find, y-rot)
+		  36	control surface - unk neva, unk maw, unk anakin (couldn't find, x-rot)
+		  37	control surface - unk neva
+		  38	control surface - unk neva
+		  39	control surface - unk neva, unk maw (couldn't find, y-rot)
+		  40	control surface - unk neva
+		  41	control surface - unk neva
+		  42	exhaust fire flash (right)
+		  43	exhaust fire burner (right)
+		  44
+		  45
+		  46	control surface - unk teemto, unk anakin, unk beedo, unk ratts
+		  47	control surface - unk teemto (couldn't find, x-rot), unk anakin, unk ratts
+		  48	control surface - bullseye cockpit R (side confirmed), unk ratts
+		  49	control surface - bullseye cockpit L (side confirmed), unk ratts
+		  50	control surface - unk clegg, unk bumpy, unk dud, unk ratts
+		  51	control surface - unk clegg, unk bumpy, unk dud (couldn't find, x-rot), unk beedo (couldn't find, z-rot), ratts cockpit rear right upper (side confirmed)
+		  52	control surface - unk clegg, unk bumpy
+		  53	control surface - unk clegg, unk bumpy (couldn't find, z-rot)
+		  54	control surface - unk clegg
+		  55	control surface - unk clegg (couldn't find, y-rot)
+		  56
+		  57
+		  58
+		  59	pilot model  (fn_470AE0, fn_4337E0)
+		  60	?? vehicle id (not a model node)  (fn_4337E0)
+		  61	?? seems to be cockpit parked height/offset  (fn_46D4C0, fn_479E10, fn_476740)
+		  62	shadow 1
+		  63	shadow 2
+		  64	shadow 3
+		  65	scrape spark 1
+		  66	scrape spark 2
+		  67	exhaust airstream R; verified right side
+		  68	exhaust airstream R
+		  69	exhaust airstream R color/scale/uv;  child of 67 (fn_471760)
+		  70	exhaust airstream L color/scale/uv;  child of 68 (fn_471760)
+		  71	?? node group, parent to 14, 15, 16  (fn_465980)
+		  72	?? possibly unused, see fn_465980
+		  73	?? possibly unused, see fn_465980
+		  74	low LOD model, used when 0x344 undefined  (fn_470AE0, fn_470610(cb20))
+0x0348	ptr	swrModel_Node_Transformed*, low LOD model?  (fn_470610)
+		- transform set from 0x15D0 (index 74)
+0x034C	ptr	swrModel_Node_Selector*, also low LOD model/s?  (fn_470610)
+		- selected based on view distance (100)
+		- ? may be child to 0x348??
+0x0350	mat4[]	?? 75-item mat4 array of staging transforms, associated with 0x344 model node table (see fn_477850)
+0x1610	vec3[]	?? 75-item array, presumably associated with 0x344 model node table, may not be vec3 but definitely 12byte
+0x1994	ptr	vehicle reflection swrModel_Node*; see fn_4709A0
+0x1998	i32	view distance; i.e. distance from nearest camera in whole units (fn_46D170)
+0x199C	[4]f32	body piece floating animation timers;  init randomized in range 0-60 (fn_475DA0, fn_46E2C0)
+0x19AC	f32	body piece floating effect multiplier (fn_475AD0, fn_46E2C0)
 0x19B0
-0x19B4
-0x19B8
-0x19BC	mat4?	18-item mat4 array?
-0x19C0
-0x19C4
-0x19C8
-0x19CC
-0x19D0
-0x19D4
-0x19D8
-0x19DC
-0x19E0
-0x19E4
-0x19E8
-0x19EC
-0x19F0
-0x19F4
-0x19F8
-0x19FC
-0x1A00
-0x1A04
-0x1A08
-0x1A0C
-0x1A10
-0x1A14
-0x1A18
-0x1A1C
-0x1A20
-0x1A24
-0x1A28
-0x1A2C
-0x1A30
-0x1A34
-0x1A38
-0x1A3C
-0x1A40
-0x1A44
-0x1A48
-0x1A4C
-0x1A50
-0x1A54
-0x1A58
-0x1A5C
-0x1A60
-0x1A64
-0x1A68
-0x1A6C
-0x1A70
-0x1A74
-0x1A78
-0x1A7C
-0x1A80
-0x1A84
-0x1A88
-0x1A8C
-0x1A90
-0x1A94
-0x1A98
-0x1A9C
-0x1AA0
-0x1AA4
-0x1AA8
-0x1AAC
-0x1AB0
-0x1AB4
-0x1AB8
-0x1ABC
-0x1AC0
-0x1AC4
-0x1AC8
-0x1ACC
-0x1AD0
-0x1AD4
-0x1AD8
-0x1ADC
-0x1AE0
-0x1AE4
-0x1AE8
-0x1AEC
-0x1AF0
-0x1AF4
-0x1AF8
-0x1AFC
-0x1B00
-0x1B04
-0x1B08
-0x1B0C
-0x1B10
-0x1B14
-0x1B18
-0x1B1C
-0x1B20
-0x1B24
-0x1B28
-0x1B2C
-0x1B30
-0x1B34
-0x1B38
-0x1B3C
-0x1B40
-0x1B44
-0x1B48
-0x1B4C
-0x1B50
-0x1B54
-0x1B58
-0x1B5C
-0x1B60
-0x1B64
-0x1B68
-0x1B6C
-0x1B70
-0x1B74
-0x1B78
-0x1B7C
-0x1B80
-0x1B84
-0x1B88
-0x1B8C
-0x1B90
-0x1B94
-0x1B98
-0x1B9C
-0x1BA0
-0x1BA4
-0x1BA8
-0x1BAC
-0x1BB0
-0x1BB4
-0x1BB8
-0x1BBC
-0x1BC0
-0x1BC4
-0x1BC8
-0x1BCC
-0x1BD0
-0x1BD4
-0x1BD8
-0x1BDC
-0x1BE0
-0x1BE4
-0x1BE8
-0x1BEC
-0x1BF0
-0x1BF4
-0x1BF8
-0x1BFC
-0x1C00
-0x1C04
-0x1C08
-0x1C0C
-0x1C10
-0x1C14
-0x1C18
-0x1C1C
-0x1C20
-0x1C24
-0x1C28
-0x1C2C
-0x1C30
-0x1C34
-0x1C38
-0x1C3C
-0x1C40
-0x1C44
-0x1C48
-0x1C4C
-0x1C50
-0x1C54
-0x1C58
-0x1C5C
-0x1C60
-0x1C64
-0x1C68
-0x1C6C
-0x1C70
-0x1C74
-0x1C78
-0x1C7C
-0x1C80
-0x1C84
-0x1C88
-0x1C8C
-0x1C90
-0x1C94
-0x1C98
-0x1C9C
-0x1CA0
-0x1CA4
-0x1CA8
-0x1CAC
-0x1CB0
-0x1CB4
-0x1CB8
-0x1CBC
-0x1CC0
-0x1CC4
-0x1CC8
-0x1CCC
-0x1CD0
-0x1CD4
-0x1CD8
-0x1CDC
-0x1CE0
-0x1CE4
-0x1CE8
-0x1CEC
-0x1CF0
-0x1CF4
-0x1CF8
-0x1CFC
-0x1D00
-0x1D04
-0x1D08
-0x1D0C
-0x1D10
-0x1D14
-0x1D18
-0x1D1C
-0x1D20
-0x1D24
-0x1D28
-0x1D2C
-0x1D30
-0x1D34
-0x1D38
-0x1D3C
-0x1D40
-0x1D44
-0x1D48
-0x1D4C
-0x1D50
-0x1D54
-0x1D58
-0x1D5C
-0x1D60
-0x1D64
-0x1D68
-0x1D6C
-0x1D70
-0x1D74
-0x1D78
-0x1D7C
-0x1D80
-0x1D84
-0x1D88
-0x1D8C
-0x1D90
-0x1D94
-0x1D98
-0x1D9C
-0x1DA0
-0x1DA4
-0x1DA8
-0x1DAC
-0x1DB0
-0x1DB4
-0x1DB8
-0x1DBC
-0x1DC0
-0x1DC4
-0x1DC8
-0x1DCC
-0x1DD0
-0x1DD4
-0x1DD8
-0x1DDC
-0x1DE0
-0x1DE4
-0x1DE8
-0x1DEC
-0x1DF0
-0x1DF4
-0x1DF8
-0x1DFC
-0x1E00
-0x1E04
-0x1E08
-0x1E0C
-0x1E10
-0x1E14
-0x1E18
-0x1E1C
-0x1E20
-0x1E24
-0x1E28
-0x1E2C
-0x1E30
-0x1E34
-0x1E38
-0x1E3C
-0x1E40
-0x1E44
-0x1E48
-0x1E4C
-0x1E50
-0x1E54
-0x1E58
-0x1E5C
-0x1E60
-0x1E64 ??? ref in 46ECD0, looks like float
-0x1E68
+0x19B4	f32	?? 3rd person cam z-offset, num in range -6 to 6, scaled with speed;  fn_475AD0, fn_452AA0, fn451EF0
+0x19B8	f32	engine nose up animation amount, 0-12 (fn_46DCD0)
+0x19BC	mat4[]	18-item mat4 array of transform matrix history (fn_470AE0)
+0x1E3C	i32	transform matrix history index (fn_470AE0)
+0x1E40	i32	transform matrix history index offset 1 (fn_470AE0);  seems to always be 16
+0x1E44	i32	transform matrix history index offset 2 (fn_470AE0);  seems to always be 10
+0x1E48	vec3	?? fn_470AE0
+0x1E54	vec3	?? fn_470AE0
+0x1E60	??	?? dot product of current xf y and down/gravity vectors;  see fn_470AE0
+0x1E64	f32	?? unk shadow1 x value; set in fn_46ECD0(init)
+0x1E68	f32	?? unk shadow1 y value; set in fn_46ECD0(init)
+		these 2 are character-based, set processed differently in init fn after initial value set
 0x1E6C
 0x1E70 (POINTER) - Pointer to PodRaceData
 0x1E74
@@ -970,19 +494,18 @@ OFFSETS
 0x1EA8
 0x1EAC
 0x1EB0
-0x1EB4 ??? ref in 474D80 ('Test' func 0x24); lod int?
-0x1EB8 ??? ref in 474D80 ('Test' func 0x24); vec3?
-0x1EBC ??? ref in 474D80 ('Test' func 0x24)
-0x1EC0 ??? ref in 474D80 ('Test' func 0x24)
+0x1EB4	i32?	?? written during 'RmHi' event?  for REMO pods (fn_474D80(cb24)), see also fn_475AD0
+0x1EB8	vec3?	?? set to 0 during 'RmHi' event?  for REMO pods (fn_474D80(cb24))
+		- copy payload+0x08,0x0C,0x10 here during 'RmCn' event
+0x1EBC	..
+0x1EC0	..
 0x1EC4
 0x1EC8 (???) - used in 46CF00_CalcTargetTurnRate???(), copied to 0x1F0 target turn rate
 		LP says this is a pointer tho?
-0x1ECC ??? ref in 474D80 ('Test' func 0x24); 0x18-long memcpy to here from +0x08
-0x1ED0 ??? ref in 474D80 ('Test' func 0x24)
-0x1ED4 ??? ref in 474D80 ('Test' func 0x24)
-0x1ED8 ??? ref in 474D80 ('Test' func 0x24)
-0x1EDC ??? ref in 474D80 ('Test' func 0x24)
-0x1EE0 ??? ref in 474D80 ('Test' func 0x24)
+		- copied into target turn rate if control string REMO; this block may be network data?
+		- written to from payload+0x0C during 'RmTh' event, if 0x1EB4 == payload+0x04
+0x1ECC LOCATION	?? copy SpawnLocation(0x08) to here during 'RmHi' event; for REMO pods (fn_474D80(cb24))
+		- copy payload+0x08 here during 'RmLc' event
 0x1EE4
 0x1EE8
 0x1EEC
@@ -990,14 +513,14 @@ OFFSETS
 0x1EF4
 0x1EF8
 0x1EFC
-0x1F00
-0x1F04
-0x1F08
+0x1F00	??	ref in init fn
+0x1F04	??	ref in init fn
+0x1F08	??	ref in init fn
 0x1F0C
 0x1F10
-0x1F14 ??? - ref in 46BEC0, related to frametime
+0x1F14	f32	?? unk timer (fn_46BEC0)
 0x1F18 (POINTER) - ??? used in 47B520()
-0x1F1C
-0x1F20
-0x1F24 ???  ref in 47FFB0, lap timing/completion related
+0x1F1C	??	?? set at end of test reset fn
+0x1F20	??	?? set at end of test reset fn
+0x1F24	BOOL	mesh at spline did NOT change this frame (fn_47FFB0); always 0, seems to be unused
 0x1F28 END

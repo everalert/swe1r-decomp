@@ -9,36 +9,80 @@ E25E00	[8]vec3	tusken raider shot translations
 
 47CE60 - map trigger handler function
 
-Terrain Flags
-@00	ZON
-@01	ZOFF
-@02	FAST	+200 terrain speed
-@03	SLOW	0.75x terrain speed; cancels zon state
-@04	SWST	'slowest'; 0.1x terrain speed
-@05	SLIP	ice; 0.2x traction
-@06	DUST
-@07	SNOW
-@08	WET
-@09	RUFF
-@10	SWMP
-@11	NSNW
-@12	MIRR
-@13	LAVA
-@14	FALL
-@15	SOFT
-@16	NRSP
-@17	FLAT
-@18
-@19
-@20
-@21
-@22
-@23
-@24
-@25
-@26
-@27
-@28
-@29	SIDE
-@30
-@31
+44D310 - the function that handles billboarding and snapping to camera; 'NodeTransformedComputed_AddToScene' according to tim/tilman
+
+
+// size 0x40
+pub const ModelBehavior = extern struct {
+0x00	u16	flags
+		@00	
+		@01	?? sets CMan->FogFlags(0x2A8) @02 ON; see fn_451A80
+		@02	?? sets CMan->FogFlags(0x2A8) @02 OFF; use this to baleet dense fog; see fn_451A80
+		@03	?? lapcomp struct related
+			fn_47EA20, fn_47ECE0 (lapcomp fns)
+			fn_47FBB0 (test fn)
+		@04
+		@05	magnet mode
+			fn_476EA0 (terrain handler)
+			fn_46FD60 (do terrain effects; blocks everything in here)
+		@06
+		@07
+		@08
+		@09
+		@10
+		@11
+		@12
+		@13
+		@14
+		@15
+    FogFlags: u8,
+		@00	update fog lol
+		@01	?? enable dense fog?
+    FogColor: [3]u8, // TODO: typedef
+    FogStart: i16,
+    FogEnd: i16,
+    LightFlags: u16,
+    AmbientColor: [3]u8, // TODO: typedef
+    LightColor: [3]u8, // TODO: typedef
+    _unk_12_14: [2]u8,
+0x14	vec3	light location; LOCATION struct?
+0x20	vec3	light direction
+0x2C	u32	terrain flags
+		@00	ZON
+		@01	ZOFF
+		@02	FAST	+200 terrain speed
+		@03	SLOW	0.75x terrain speed; cancels zon state
+		@04	SWST	'slowest'; 0.1x terrain speed
+		@05	SLIP	ice; 0.2x traction
+		@06	DUST
+		@07	SNOW
+		@08	WET
+		@09	RUFF
+		@10	SWMP
+		@11	NSNW
+		@12	MIRR
+		@13	LAVA
+		@14	FALL
+		@15	SOFT
+		@16	NRSP
+		@17	FLAT
+		@18	unused
+		@19	unused
+		@20	unused
+		@21	unused
+		@22	unused
+		@23	unused
+		@24	unused
+		@25	unused
+		@26	unused
+		@27	unused
+		@28	unused
+		@29	SIDE
+		@30	unused
+		@31	unused
+    _unk_30_32: [2]u8,
+    _unk_32_34: [2]u8,
+0x34	vec3	track visual layers to disable
+0x38	vec3	track visual layers to enable
+    pTriggers: *ModelTriggerDescription,
+};

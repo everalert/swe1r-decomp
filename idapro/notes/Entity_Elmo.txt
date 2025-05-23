@@ -1,0 +1,54 @@
+Entity object type 'Elmo'
+see EntitySystem.txt for more details about the system
+
+length 0xC0
+
+
+OFFSETS
+
+0x00	Entity Header
+0x08	ENUM	?? selects behaviour in fn_468A30, also ref'd a lot everywhere
+0x0C	i32	?? some kind of id for the model data; modelblock id? see Model_LoadPuppet__45CE10
+0x10
+0x14	ENUM	selects behaviour in cb14
+	1
+0x18	f32	?? timing related, see cb14
+0x1C	f32	?? timing related
+0x20
+0x24
+0x28
+0x2C
+0x30	ptr	ptr to ModelNode ptr array; see Hang__469B50
+		array it points to at least 9 long, see callers of above fn
+0x34	ptr	ptr to ModelAnimation
+0x38
+0x3C
+0x40
+0x44	VEC3	unk
+0x50	VEC3	unk, dist with 0x44 checked in fn_468D00
+0x5C
+0x60
+0x64
+0x68	f32	?? angle of some kind, see cb14
+0x6C	f32	?? angle of some kind, see fn_468D50, delta'd with 0x68
+0x70
+0x74
+0x78
+0x7C
+0x80
+0x84
+0x88	ENUM	unk, see fn_466EC0
+0x8C
+0x90
+0x94
+0x98	f32	?? timing related, sometimes written to 0x9C instead of frametime
+0x9C	f32	?? set to frametime in fn_468D00
+0xA0	BOOL	set off/on in fn_468D00 if dist between 0x50 and 0x44 > 10.0
+0xA4
+0xA8	f32	?? timer of some kind, see cb14
+0xAC	f32	?? randomly set in range -3..-1 in cb14
+0xB0
+0xB4
+0xB8
+0xBC	f32	?? see Model_LoadPuppet__45CE10
+0xC0 END

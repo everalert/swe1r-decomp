@@ -1,8 +1,3 @@
-environment state object
-
-'cMan' entity keyword
-936 bytes long (0x3A8)
-
 see CameraSystem.txt for related notes about the underlying/related systems
 
 there seems to be more than one of these entities generated
@@ -29,8 +24,84 @@ CONSTANTS
 		space for 3 or 4 extra cases
 
 
-OFFSETS
+EVENTS
+TODO: explain/define each one
 
+Swee
+NAsn
+Deth
+CBut
+Load
+ccf1
+ccf2
+ccf3
+ccf4
+Shak
+RSet
+
+'CBut' EVENT
+- cycle camera IF given pointer matches that associated with cman entity
+0x00	'CBut'
+0x04	ptr	Test entity ptr
+0x08 END
+
+'ccf1' EVENT
+- set camera mode to 1
+0x00	'ccf1'
+0x04 END
+
+'ccf2' EVENT
+- set camera mode to 4
+0x00	'ccf2'
+0x04 END
+
+'ccf3' EVENT
+- set camera mode to 5
+0x00	'ccf3'
+0x04 END
+
+'ccf4' EVENT
+- set camera mode to 2
+0x00	'ccf4'
+0x04 END
+
+'Deth' EVENT
+0x00	'Deth'
+0x04	ptr	Test entity ptr
+0x08	BOOL	is death ending camera; set CameraMode to 8 if false, 9 if true
+0x0C	vec3*	?? deref'd and passed into 0x15C
+0x10	vec3*	?? deref'd and passed into 0x174
+0x14	vec3	?? passed into 0x180
+0x20 END
+
+'Load' EVENT
+0x00	'Load'
+0x04 END
+
+'NAsn' EVENT
+- seems to be used to associate a viewport with a local player's Test entity
+0x00	'NAsn'
+0x04	int	viewport index
+0x08	ptr	Test entity ptr
+0x0C END
+
+'Shak' EVENT
+0x00	'Shak'
+0x04	f32	camera shake max offset
+0x08	f32	camera shake speed
+0x0C END
+
+'Swee' EVENT
+0x00	'Swee'
+0x04	BOOL	on = start camera sweep, off = cancel camera sweep
+0x08 END
+
+'RSet' EVENT
+0x00	'RSet'
+0x04 END
+
+
+CMAN ENTITY
 0x0000 Entity Header
 0x0008
 0x000C
@@ -51,9 +122,9 @@ OFFSETS
 		1 = normal
 		2 = far
 		4 = engines
-		5 = front
+		5 = front/internal
 		6 = spline camera (similar to post-race autopilot)
-		7 = pre-race camera
+		7 = pre-race camera (sweep)
 		8 = death camera
 		9 = death camera end of animation handler?
 		no other values have any logic attached
@@ -76,6 +147,7 @@ OFFSETS
 0x0158
 0x015C	vec3	?? vec3 in Deth event payload written here
 		seems to be used as a staging vec3, later written to 0x108 Txyz in HandleDeathCamera_452600
+		subtracted from 0x168 in HandleDeathCamera
 0x0168	vec3	?? see HandleDeathCamera_452600
 0x0174	vec3?	?? probable vec3 in Deth event payload written here
 0x0180	vec3?	?? probable vec3 in Deth event payload written here
@@ -93,11 +165,15 @@ OFFSETS
 0x0264	mat4	?? staging mat4 for camera focus? only updated when cam1 or cam2 are on; ref in 451D60, copied from 0x108
 0x02A4	ptr	ptr to swrModel_Behavior, see fn_451A80
 0x02A8	u32	Fog toggles/flags (from LP)
-		1<<03 ref in 453E00
-0x02AC	u32	track visual flags; defaults to 0xFFFFFF00
+		@00 set off if ModelBehaviour->FogFlags & 2
+		@01 ?? render fog; set on/off depending on if ModelBehaviour->FogStart is positive
+		@02 ?? render skybox as fog color instead of texture
+			set on/off by ModelBehaviour->FogFlags @01 and @02
+		@03 set on in fn_451A80 if terrain NSNW (@11); other ref in fn_453E00
+0x02AC	u32	track visual layers; defaults to 0xFFFFFF00
 0x02B0	f32?	camera zoom (from LP);  ref in 4533A0
 0x02B4	f32?	maybe render depth (from LP)
-0x02B8	f32	?? ref in HandleRaceCamera_maybe_453E00
+0x02B8	f32	?? ref in HandleRaceCamera_maybe_453E00, Unk_CMan_HandleCameraRenderDist_4538D0
 0x02BC	[3]u32	Fog RGB
 0x02C8	[3]u32	Fog RGB Target		
 0x02D4 (f32)	Fog Distance;  also manages track visual segment load distance 
@@ -145,9 +221,10 @@ ENTITY_CMAN_SHAK struct
 0x04	f32	max offset
 0x08	f32	speed
 
-ENTITY_CMAN_CBUT struct
+ENTITY_CMAN_MODE struct
+- camera mode change event, triggered by camera button or F1..F4
 - pointer fed into cb24 magic/payload arg for 'CBut' event
-0x00	u32	'CBut'
+0x00	u32	'CBut' or 'ccf1' or 'ccf2' or 'ccf3' or 'ccf4'
 0x04	ptr	Test entity, event skipped if ptr doesn't match cMan->pTestEntity
 
 ENTITY_CMAN_DETH struct
@@ -162,4 +239,4 @@ ENTITY_CMAN_DETH struct
 ENTITY_CMAN_SWEE struct
 - pointer fed into cb24 magic/payload arg for 'Shak' event
 0x00	u32	'Swee'
-0x04	BOOL?	?? if this is on, seems to insta-end the sweep cam, instead of resetting it?
+0x04	BOOL?	?? if this is off, seems to insta-end the sweep cam, instead of resetting it?

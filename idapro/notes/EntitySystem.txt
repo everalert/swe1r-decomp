@@ -46,7 +46,8 @@ ENTITY DATA STRUCT
 0x28 length
 +0x00 (u32)  entity type id
 0x04	u16	default? entity header flags (fn_450850); used in 450DB0 as arg to 450C00 -> determines whether func 0x24 runs
-0x06	??
+0x06	??	TODO: confirm this is not actually the flags & that first 8 bytes of manager is not also an ENTITY_HEADER
+		old notes systematically had the order of flags/index in header wrong
 +0x08 (u32)  entity count
 +0x0C (u32)  entity stride, e.g. 'Test' = 0x1F28 (vehicle state size)
 +0x10 (ptr)  entity array address
@@ -67,11 +68,16 @@ ENTITY DATA STRUCT
     - TODO: check if there is actually an arg3 or just decomp error
 
 
+ENTITY HEADER
+0x00	u32	entity type id/magic
+0x04	i16	entity index
+0x06	u16	entity flags
+
+
 ENTITY FLAGS
-update: first 2 bytes (bits 0..15) actually seems to be index of PodData struct, at least in Test entities
+see: fn_450850, fn_450DB0, fn_42A110
 Seems to be used to control execution flow of entity-related meta functions
-Found at +0x04 on all entity objects
-	0..15 is not flags; i16 index of current entity
+	should be remapped to 0..15, just cbf rn
 	@16  ???	sometimes on for Test entities
 	@17
 	@18
@@ -80,8 +86,8 @@ Found at +0x04 on all entity objects
 	@21  ???	sometimes on for Test entities
 	@22
 	@23
-	@24	?? Queue 'Free'; fn_4509B0, prevent 0x1C if on; fn_450E30, prevent 0x24 'Free' if off
-		seems to indicate generally that the entity is 'available', see fn_450D20
+	@24	??	Queue 'Free'; fn_4509B0, prevent 0x1C if on; fn_450E30, prevent 0x24 'Free' if off
+			seems to indicate generally that the entity is 'available'; see fn_450D20, fn_42A110, fn_450AA0
 	@25
 	@26
 	@27
@@ -89,6 +95,7 @@ Found at +0x04 on all entity objects
 			fn_4509B0, prevent 0x1C if on
 			fn_450E30, turned on if 0x24 'Free' runs
 			fn_454A30 scen0x24, turned on if 'Slep' runs, and off if 'Wake' runs
+			fn_445680
 	@29
 	@30
 	@31
@@ -120,13 +127,14 @@ General notes
 
 'Jdge'
 - 'manager' for the in-race part of the game
-- handle non-simulation aspects of the race logic, e.g. lap completion
+- handle non-simulation aspects of the race logic, e.g. lap completion, race state/phase, etc.
 
 'Scen'
 - seems to not actually be used on the pc version
 - is also magic word for a model header/type, seems to correspond to cutscenes, possibly only used on console?
 
 'Elmo'
+- animations
 
 'Smok'
 - instances of flame effects (death explosion, engine fire, flamethrower)

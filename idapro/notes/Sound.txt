@@ -12,6 +12,46 @@ FUNCTIONS
 
 fn_427590	Sound_PlayRandomVoiceLine(type:i32, podId:i32, soundId:i32, i32, i32, i32, i32, pos:*Vec3) void
 
+fn_427670	Sound_VoiceLineFlags_Check(player:i32, flag:i32) i32
+fn_427690	Sound_VoiceLineFlags_Set(player:i32, flag:i32) i32
+fn_4276A0	Sound_VoiceLineFlags_Unset(player:i32, flag:i32) i32
+	- deals with flags array at 0xE9ED60
+	- flags
+		- most values noted here
+		- some extra unknowns in 45DD80,466BD0 (0xFF0000), 474970 (0xF0000) under mass flag unset calls
+		@00	?? hang-related, when transitioning, see 454D40
+		@01	visited watto's shop; see 437EA0
+		@02	visited junkyard; see 43ABC0
+		@03	visited pit droid shop; see 437EA0
+		@04	?? elmo-related, see fn_467C80
+		@05	?? elmo-related, see fn_467C80; gated by @04, plays unk random voiceline
+		@06
+		@07
+		@08
+		@09
+		@10
+		@11
+		@12
+		@13
+		@14
+		@15
+		@16	vehicle is repairing, see 46AB10
+		@17
+		@18	vehicle is catching fire, see 46AA30
+		@19	vehicle is boost starting, see HandleInput(46BEC0 or smth)
+		@20	announced new lap record, see 460950
+		@21	announced countdown character, see 45E200(cb14)
+		@22
+		@23
+		@24	announced podium winner, see 43CEB0
+		@25
+		@26
+		@27
+		@28
+		@29
+		@30
+		@31	?? elmo-related, checked when elmo->0x14==0x11, set when transitioning most hang menu screens
+
 fn_427410	Sound_PlayVoiceLine(type:i32, podId:i32, soundId:i32, pos:*Vec3) void
 	- special case where type=6, soundid=39 will pass even if filename check fails?
 
@@ -49,11 +89,17 @@ CONSTANTS
 
 0xE68064    [?]??	array of 68-byte long structs, which seem to be (non-voice?) sound queue entries
 			see fn_426A00
+0xE68078    []??	part of above array; this section has 8 items (see fn_449E30), not sure how large whole array is
 
-0x50B600    [?]f32	array of playing non-racer voiceline timestamps, one for each 'type'
-0x50B620    [?]f32	array of playing racer voiceline timestamps
+0x50B5F0    Vec3	?? used as spatial input to fn_426A00 in fn_426C80,fn_426CC0,fn_426D80
+0x50B600    [8]f32	array of playing non-racer voiceline timestamps, one for each 'type'
+0x50B620    [23]f32	array of playing racer voiceline timestamps
+0x50CA30    int		?? queued fode/beed voiceline index, set in Jdge 'Begn' event
 0x4B86C8    [8][*:0]u8	voiceline prefix strings, e.g. 'wtui' (watto)
 0x4B86E8    [23][*:0]u8	character prefix strings, e.g. 'as' (anakin)
+0x4C4A98    [?]int	?? voiceline index map for rali/gali, see jdge cb14
+0x4C4A68    [?]int	rali voiceline map, character names only ; see jdge cb14
+0x4C0298    [4?]int	voiceline index map for fode announcing circuit
 0x427350    [8]u8	mapping of voiceline type to filename formatting-related behaviour
 			seems to be: 0=racers, 1=other
 0x4B7FB0    [50]i16	some kind of mapping for type-0 voicelines; < 0 = no map
@@ -66,6 +112,7 @@ CONSTANTS
 0x4B83F0    [167]i16	some kind of mapping for type-7 voicelines; < 0 = no map
 
 0x4B6D14    bool?	use 22k sounds
+0x4B6D34    ??		unk static data struct, has lots of soundfile strings;  see fn_422A90
 0x4B8550    f32		near (max vol) distance for spatially-based volume? see fn_426D10
 0x4B8554    f32		far (0 vol) distance for spatially-based volume? see fn_426D10
 0x4AD970    f32		rng base number used in several sound-related rolls, including scrape sound
@@ -74,6 +121,27 @@ CONSTANTS
 0x4AD768    f32		rng base number used in several sound-related rolls, including boost activation
 0x4AD8B8    f64		boost activation - rng base multiplier (3FB999999999999C; 0.10)
 0x4AD8C0    f64		boost activation - rng offset (BFC70A3D70A3D70A; -0.18)
+
+
+00000000 PROGRESS_SOUND_MAP struc ; (sizeof=0xC, mappedto_235)
+00000000                                         ; XREF: .data:ProgressSoundMap_AndoPrimeCentrum_4B8928/r
+00000000                                         ; .data:ProgressSoundMap_Inferno_4B8CC8/r
+00000000 ProgressStart        dd ?
+00000004 ProgressEnd          dd ?
+00000008 SoundID         dw ?
+0000000A _0A_flags             (fn_427B20)
+0000000C PROGRESS_SOUND_MAP ends
+
+0x4B8FA8    PROGRESS_SOUND_MAP*[24]	indexed by Planet*3+PlanetTrack; excludes APC and INF
+0x4B8CC8    PROGRESS_SOUND_MAP		inferno
+0x4B8928    PROGRESS_SOUND_MAP		ando prime centrum
+0x4B87A8    PROGRESS_SOUND_MAP[]	all the actual data for progress-based ambient sound, needs refs above to actually find the one for the track
+
+
+0x4B9098    int[12]	unk racer voiceline id table for npc racer;  complements 0x4B90C9, see fn_427F10
+0x4B90C8    int[10]	unk racer voiceline id table for player racer;  complements 0x4B9098, see fn_427F10
+
+0x4B8780    i16[8?]	unk sound id table for planets;  see fn_427D90, used as input to fn_422A90
 
 
 VOICE LINE TYPES
@@ -87,6 +155,16 @@ id	range	prefix	note
 5	1..168	rali	fode: character announcements
 6	1..104	gaig	beed: reactions
 7	1..167	gali	beed: character announcements
+
+
+SOUND CHANNELS
+- see: fn_426A00 arg2
+- array (8 items) of some kind of related structure (sizeof=0x44) starting at around 0xE68060
+- maybe 8 channels?
+id	note
+6	sound effect?
+7	voiceline? music?;  fn_427410, fn_463580
+8	music?;  fn_426A00
 
 
 SOUND IDs

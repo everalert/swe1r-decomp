@@ -1,0 +1,45 @@
+CONSTANTS
+
+0x50C0C0    u32		number of fonts in font table (0xE99720);  7 items unpatched
+0x50C0C4    *FONT	currently used font, set by taking value from font table  (fn_42D8D0);  set frequently during text parsing
+0xE99720    [7]*FONT	font table  (fn_42D720);  in order: font0, 3, 2, 3, 4, 0, 1
+0x4BF918    FONT	font0 data; font table idx 0 is ptr to here
+0x4BF7E0    FONT	font1 data
+0x4BF848    FONT	font2 data
+0x4BF8B0    FONT	font3 data
+0x4BF980    FONT	font4 data
+
+
+FUNCTIONS
+
+void __cdecl Unk_Quad_ConvertSpriteTableToMaterial__445EE0(byte Format, byte Alignment, int Width, int Height, int WidthMax, int HeightMax, SWR_MATERIAL **apMaterial, int **apPalette, char a9, char a10)
+
+
+void __cdecl swrText_SetCurrentFont__42D8D0(i16 index)
+	- clamps value to number at Text_NumFonts_50C0C0 (0..7)
+	- sets Text_pCurrentFont__50C0C4 to Text_FontTable_E99720[index]
+
+void __cdecl swrText_SetCurrentFont2__42D900(__int16 Index)
+	- passthrough to swrText_SetCurrentFont__42D8D0
+
+int __cdecl Unk_swrText_GetStringHeightByFont__42DF70(char *pText, void *pFont)
+int __cdecl Unk_swrText_GetStringWidthByFont__42DE30(char *pText, void *pFont)
+int __cdecl Unk_swrText_GetStringWidthByFontIndex__42DE10(char *buf, int FontIdx)
+
+void __stdcall Unk_Text_FontsInitialize__42D720()
+	- smells like font setup/loading, not sure because not yet sure exactly what Unk_Quad_Sprite__445EE0 does
+	- also sets font-related initial values and fills font table with ptrs
+
+void __cdecl Unk_swrText_SetCurrentMaterialFromFont__42DDF0(int pFont, int PageIdx)
+
+
+STRUCTURES
+
+FONT
+0x00	??			?? seems to always be 1 for fonts
+0x04	SPRITE_PAGE_TABLE	
+0x??	??			?? there is more data past the sprite page table, see fn_42DE30
+
+SPRITE_PAGE_TABLE
+0x00	i32	number of sprite pages/materials
+0x04	[]ptr	VLA of pointers to pages/materials;  page ptrs will be overwritten with material ptrs when table run through ConvertSpritePagesToMaterial (fn_445EE0)

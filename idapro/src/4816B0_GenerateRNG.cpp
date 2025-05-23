@@ -2,7 +2,7 @@
 // probably just the C rand() using globals
 
 // Linear Congruential Generator
-// m = 0x7FFFFFFF (2**31-1)
+// m = 0x7FFFFFFF (2**31-1) ; 2147483647
 // a = 1103515245
 // c = 12345
 
@@ -15,4 +15,5 @@ int GenerateRNG(int &RandomNumber, bool &IsSeeded)
 	return RandomNumber = (1103515245 * RandomNumber + 12345) & 0x7FFFFFFF;
 	//[TODO] verify that " & 0x7FFFFFFF" actually does the same thing as the original asm,
 	//       might be mixing up my logic for how int bits work
+	//       seems to be the case though, glibc rand uses that exact code
 }

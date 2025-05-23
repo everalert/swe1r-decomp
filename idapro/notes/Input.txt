@@ -3,53 +3,161 @@ gameplay WILL be affected, but menuing etc. WILL NOT be affected
 
 CONSTANTS
 
-TODO: reorganize
 
-this block gets ref'd directly by the Test input handling code
-0xE98E80    [4]f32	analog y axis, one for each player slot
-			HandleRaceInputs_46BEC0 suggests this and the following are only 2 players, plus 0xE98E88 etc. for 2 more
-0xE98E90    [4]u32	input bitfield (raw), one for each player slot; what each bit for these represents currently unknown
-0xE98EA0    [4]f32	analog x axis, one for each player slot
-0xE98EB0    [4]u32	input bitfield (just on), one for each player slot
-0xE98EC0    [4]u32	input bitfield (just off), one for each player slot
-0xEC8840    [15]f32	array of inputs corresponding to ButtonInput
+0x4B2944  BOOL		joystick enabled setting
+0x4B2910  BOOL		?? force feedback enabled setting
+0x4D79D0  BOOL		?? force feedback enabled setting backup (stored while joystick disabled)
 
-following seems similar to above, but for "local" players (splitscreen)
+
+0x4B2998  [16]i32	static array of indices mapping 0xE98EE4 menu buffer button array to 0xEC8840 btn final analog (buf_button[n] = btn_analog[map[n]])
+			- 7,  6,  1,  0,  9, -1, -1, -1, 12, 11, 14, 13, 10,  5,  2,  3
+0x4B29D8  [16]u8	?? static b8 array that seems to determine which button inputs make it to the analog button array at 0xEC8840
+			- 1,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  1,  1,  1,  1,  0
+0x4B29E8  [?]CONTROL_MAP_DEF_FUNC		data used to translate FUNCTION string in control map file into actual control map values
+0x4B2AF0  [?]CONTROL_MAP_DEF_INPUT		data used to translate joystick axis input string (X, Y, etc.) in control map file into actual control map values
+0x4B2B28  [?]CONTROL_MAP_DEF_INPUT		data used to translate joystick button input string in control map file into actual control map values
+0x4B2BD0  [?]CONTROL_MAP_DEF_INPUT		data used to translate keyboard input string in control map file into actual control map values
+
+
+0x4D55D4  BOOL	seems to be a flag set when using racing wheel
+
+
+0x4D5E20  int		number of mapped joystick inputs
+0x4D5E24  int		number of mapped mouse inputs
+0x4D5E28  int		number of mapped keyboard inputs
+0x4D5E30  [4]f32	axis-type joystick/gamepad inputs
+0x4D5E40  [4]f32	axis-type mouse inputs
+0x4D5E50  [4]f32	axis-type keyboard inputs
+0x4D5E80  [15]f32	button-type joystick/gamepad inputs
+0x4D5EBC  [15]f32	button-type mouse inputs
+0x4D5EF8  [15]f32	button-type keyboard inputs
+- these are where the control map inputs go after translation, affecting only race inputs
+- see AxisInput and ButtonInput below for index meanings
+- even though button-type inputs are f32, the values are always 0 or 1
+- combined into 'final' mapped inputs (0xEC8810 block)
+- button-type arrays actually 16 with unused last field, i think
+
+
+0x4D5FC0  CONTROL_MAP[65]	for joystick, inputs will be read into 0x4D5E30 and 0x4D5E80
+0x4D6518  CONTROL_MAP[65]	for mouse, inputs will be read into 0x4D5E40 and 0x4D5EBC
+0x4D6828  CONTROL_MAP[65]	for keyboard, inputs will be read into 0x4D5E50 and 0x4D5EF8
+- where the actual mappings are stored after being loaded from control.map or w/e
+- seems like there is no bounds checking when loading in input mappings?? (need to confirm)
+- all arrays are 0x30C bytes long
+
+
+0x4D6B3C - active joystick index
+	i.e. yes, there is space allocated for several joysticks, even though only one is used
+
+
+0x4D6B40  BOOL	BtnAcceptJustOn_Menu
+0x4D6B44  BOOL	BtnCancelJustOn
+0x4D6B48  BOOL	BtnAcceptNoMouseJustOn_Menu;  check accept input, but skip mouse check
+0x4D6B4C  BOOL	BtnAcceptJustOff_RaceEnd
+0x4D6B50  BOOL	BtnCancelJustOff
+0x4D6824  BOOL	BtnAcceptOn_Menu
+0x4D5FB8  BOOL	BtnAcceptOff_RaceEnd
+0x4D6300  BOOL	BtnCancelOn
+0x4D6304  BOOL	BtnCancelOff
+0x4D6308  BOOL	BtnAcceptNoMouseOn_Menu;  check accept input, but skip mouse check
+- hardcoded checks separate from the menu & race blobs, used for navigation in some places
+- not sure exactly about the characterization here in terms of usage, but this is functionally what they do
+- see bottom of ProcessInput
+
+
+0x4D62D0  [6]f32	raw axis inputs of active joystick from previous frame, copied from 0xEC87C0 at start of ProcessInput
+			seems to actually be 3 such arrays in series, one for each input type (see fn_407700)
+
+
+0x4D6CE8  [28]BOOL	?? ffb 'channel's enabled?
+			- values turned off in fn_40A0B0
+			- index corresponds to FORCE_FEEDBACK_UNK+0x170
+			- seems to correspond to FORCE_FEEDBACK_TRIGGER (same index fed into fn_40A190)
+0x4B4940  [28]char*	force feedback trigger names; FORCE_FEEDBACK_TRIGGER enum based on this
+0x4D6DA0  FORCE_FEEDBACK_UNK	?? array of 0x174-byte items related to force feedback, seems to be 6 items based on fn_40A160
+
+
+'menu'(hang)-exclusive inputs, transferred/updated from 0xE98E90 bitsets  (fn_45A460)
 0x50C908    [4]u32	input bitfield (raw), one for each player slot
 0x50C918    [4]u32	input bitfield (just on), one for each player slot
 0x50C970    [4]i32	axis x input (for menus?), -1/0/1, one for each player slot
 0x50C980    [4]i32	axis y input (for menus?), -1/0/1, one for each player slot
 
-0xEC8810 - u8 array of finalized digital inputs; apparently 15 items, see code at 0x405883
-0xEC8830 - f32 array of finalized/combined analog inputs; see code at 0x405791
+
+0x50D568  [60]f32	raw axis input data; 0..47 is read from joysticks (6 per joystick), index 48 onward used for control map mouse inputs over 2 (i.e. index 51 onward)
+
+
+0x50D658  [4]DIDEVICEINSTANCE	keyboard device data is written here when enumerated, 0x9D0 bytes total; see fn_486A10
+				- code limits keyboard device count to 4, but sets it to 1 every iteration, i.e. it 
+				  only ever uses space for 2 keyboards here, so this may actually be a 2-long array
+0xECB240  [4]DIDEVICEINSTANCE	mouse device data is written here when enumerated, 0x9D0 bytes total; see fn_486A10
+0xEC9EA0  [8]DIDEVICEINSTANCE	joystick device data is written here when enumerated, 0x13A0 bytes total; see fn_486A10
+- byte totals based on memset in fn_485360, but when actually filled with data they seem like they could be 
+  a lot more unless i'm not understanding how ddi stuff is filled
+
+		
+0x50E028  int[0x210]		raw btn input (on?) durations in ms, END 50E868; see input table at bottom
+0x50E868  int[0x210]		raw btn input JustOn (or On?), END 50F0A8; see input table at bottom
+0x50F0A8  AXIS_CONFIG[60]	?? corresponds with 0x50D568 array, but only up to 52-ish seems to be used; END 50F648  (fn_4855C0)
+				refs in fn_4856E0, fn_486710
+0x50F648  ??			?? mouse-related, see fn_486710
+0x50F658  ??			?? mouse-related, see fn_486710
+0x50F668  int[0x210]		raw btn input frames on, END 50FEA8; see input table at bottom
+- raw input taken from dinput data with minimal mapping
+- device-level 'race' input (0x4D5E30 block) is mapped from this
+
+
+0x50FEC8	int	joystick device count
+
+
+this block gets ref'd directly by the Test input handling code
+0xE98E80    [4]f32	analog y axis, one for each player slot
+0xE98E90    [4]u32	input bitfield (raw), one for each player slot; what each bit for these represents currently unknown
+0xE98EA0    [4]f32	analog x axis, one for each player slot
+0xE98EB0    [4]u32	input bitfield (just on), one for each player slot
+0xE98EC0    [4]u32	input bitfield (just off), one for each player slot
+- aka 'packed inputs'
+- converted to from mapped 'race' inputs (0xEC8810 block), going through 'menu buffer' (0xE98EE0 block)
+- HandleRaceInputs_46BEC0 suggests these are only 2 players, but space is made for 2 more
+
+
+0xE98EE0  i16		menu buffer axis x
+0xE98EE2  i16		menu buffer axis y
+0xE98EE4  [16]u8	menu buffer buttons
+0xE98EF4  ?i32		unk/unused menu buffer field; total size 24 bytes per player
+- aka 'packing buffer'
+- used as buffer for a translation layer between the mapping-processed inputs and the E98E80 etc. bitfields, i.e. packed inputs
+- i.e. 'final' inputs get mapped to here, then the bitfields read from here as they're being built
+- axis values seem to only range from -256 to 256; so basically they use an extra byte just for a single extra bit for one extra value???
+- but in practice the values are meant to be -100 to 100, above is just a hard cap in the case of stacking inputs
+- also button array immediately following in memory
+- these 3 repeat 3 more times, for total of 4 players, ending at 0xE98F40
+
+
+0xEC8790  ??		something mouse-related used when interpreting control mapped mouse inputs over 2
+0xEC87C0  [6]f32	axis inputs for active joystick read from raw axis data at the start of ProcessInput, with basic filtering; copied to 0x4D62D0
+			seems to actually be 3 such arrays in series, one for each input type (see fn_407700)
+0xEC87D8  ??		seems to be where mouse x/y/wheel? movement is stored, before being used later when translating control map
+
+
+0xEC8810  [15]u8	finalized button-type digital inputs; see code at 0x405883
+0xEC8820  ??		?? ref in fn_46BEC0
+0xEC8830  [4]f32	finalized axis-type analog inputs; see code at 0x405791
+0xEC8840  [15]f32	finalized button-type analog inputs
+0xEC8880  ??
+0xEC88A0  [15]f32?	finalized button-type inputs - hold durations
 0xEC88E0 - 0xFF-byte array on input state, made by calling fn_485880 (ReadKey) on keycodes <256
-0x50D568 - 0xF0-byte array of raw axis input data
-0x50E028 - 0x840-byte array of input read timestamps (durations?)
-0x50E868 - 0x840-byte array of input state, seems to be On for buttons
-0x50F668 - 0x840-byte array of input state, seems to be JustOn for buttons
-	+0x110 seems to be joysticks section
-	+0x1F4 seems to be mouse section
-above two arrays may be structs?
-see 'Input Table' below
-0x4D6B3C - active joystick guid (index?), used to index joysticks in raw data correctly
-	i.e. yes, there is space allocated for several joysticks, even though only one is used
-
-
-0xEC8830 - [4]f32 - axis-type finalized/merged inputs (see AxisInput below for order)
-0xEC8810 - [15]u8 - button-type finalized/merged inputs (see ButtonInput below for order)
 - writing to these after ProcessInput is done will change the driving output
+- see AxisInput and ButtonInput below for index meanings
+- somewhere between EC8810 and EC88E0 is the setting for invert axis, and probably other settings
+	- found by zeroing out the whole block including undef'd parts during cam7 dev (lol)
+	- address of that one setting is EC8888, block of -something- starts EC8880
+- button-type arrays may actually be 15 items; seemingly unrelated refs sighted on 'in-between' addresses, e.g. 0xEC887C
 
-0x4D5E30 - [4]f32 - axis-type joystick/gamepad inputs
-0x4D5E40 - [4]f32 - axis-type mouse inputs
-0x4D5E50 - [4]f32 - axis-type keyboard inputs
 
-0x4D5E80 - [15]f32 - button-type joystick/gamepad inputs
-0x4D5EBC - [15]f32 - button-type mouse inputs
-0x4D5EF8 - [15]f32 - button-type keyboard inputs
-- even though these are f32, the values are always 0 or 1
+0xECA0E4	joystick LPDIRECTINPUTDEVICEA; actually seems to be an array of 157*4-byte items, and
+		this const is just the offset of the dinput device pointer for the first item
 
-- yes, the slots are repeated for all devices even though they obviously don't all have enough buttons/mappings
-- these arrays only affect race controls, not menus etc.
 
 
 FUNCTIONS
@@ -58,6 +166,29 @@ fn_404DD0 - fn ProcessInput() void
 fn_45A460 - fn Hang_PollInputForUI(player:i32) void
 fn_45A7F0 - fn Hang_UpdateInputForUI(player:u32, bButtonOn:u32, value:u32) void
 		- if bButtonOn==FALSE, set bits from value off, else
+fn_485880	ReadInput(Index: i32, Counter: *i32)
+
+fn_407EA0	CheckAcceptInput(SkipInputType: i32)
+fn_407F80	CheckCancelInput(SkipInputType: i32)
+- checks hardcoded offsets directly from raw input table via ReadInput
+- generally called with -1 when polling for all inputs, but can be any value that isn't 0..2
+
+fn_40A0B0	void __cdecl Unk_Input_ForceFeedback_DisableIdx_maybe__40A0B0(unsigned int UnkIndex)
+		- may be 'init/reset' rather than 'disable'
+fn_404230	BOOL __cdecl Unk_Input_ForceFeedback__404230(INPUT_FORCE_FEEDBACK *pForceFeedback)
+		- runs some kind of callback function in a different structure
+fn_40A160	int __cdecl Unk_Input_ForceFeedback_GetUnusedIndex_maybe__40A160(unsigned int a1)
+		- checks for the first 0x4D6DA0 array index to have value at 0x170 greater than input, and returns it
+fn_40A190	int __cdecl Unk_Input_ForceFeedback_CmpTriggerString_maybe__40A190(int ForceFeedbackIdx, unsigned int a2)
+fn_40A120	void __cdecl Unk_Input_ForceFeedback_ResetAllChannels_maybe__40A120(BOOL a1)
+
+fn_4040A0	int __cdecl Unk_Input_ForceFeedback__4040A0(INPUT_FORCE_FEEDBACK *pFFB, char *pTriggerName, int a3)
+		- https://pied.nu/banned/historicalsource/jediacademypc/code/win32/FeelIt/FEELitIFR.h
+		- IFCreateEffects - DLLAPI LPIFEELIT_EFFECT* IFRAPI IFRCreateEffects( HIFRPROJECT hProject, LPCSTR pObjectName, int *pNumEffects );
+		- IFReleaseEffects - DLLAPI BOOL IFRAPI IFRReleaseEffects( HIFRPROJECT hProject, LPIFEELIT_EFFECT *pEffects );
+
+
+DEFINITIONS
 
 pub const AxisInput = enum(u8) {
     Thrust,
@@ -67,8 +198,8 @@ pub const AxisInput = enum(u8) {
 };
 
 pub const ButtonInput = enum(u8) {
-    Camera,
-    LookBack,
+    CameraCycle,
+    CameraLookBack,
     Brake,
     Acceleration,
     Boost,
@@ -77,63 +208,40 @@ pub const ButtonInput = enum(u8) {
     RollRight,
     Taunt,
     Repair,
-    Unk11,
+    Pause,
     Unk12,
     Unk13,
     Unk14,
     Unk15,
 };
 
-
-Input Codes
-
-Shift	F4	4		(Watto's Shop) +1000 Truguts
-Alt	H			? seems to show trugut cheat hint, not sure other conds to show
-Ctrl	F10			? related to invincibility, seems to need debug menu enabled to work
-Ctrl	F11			toggle that works in conjunction with -snafu, shows fps
-I	F	L	Y	? possibly debug related, sets flag that is ref'd in Unk_Test_TerrainHandler_476EA0
-RCtrl	N	K		(Vehicle Select) Jinn Reeso
-LCtrl	C	Y		(Vehicle Select) Cy Yunga
-RCtrl	LAlt			(Track Detail) Toggle Mirror mode, set cantina mirroring OFF
-Ctrl	LAlt	RAlt		(Track Detail) Toggle Mirror mode, set cantina mirroring ON
-Num*	T			Speedup cheat
-F12				Screenshot
-F5				taunt (cycle)
-F6				taunt (random)
-F7				show chat prompt
-Ctrl	M			Toggle Mouse
-Ctrl	J			Toggle Joystick
-Ctrl	F			Toggle Force Feedback
-Ctrl	Q			(Multiplayer) ??
-ScrLk	Home			Unlock all pods and tracks cheat
-
-
-INPUT BITFIELD (non-local; not sure if local is same)
+INPUT BITFIELD
 - semantic ones might be wrong, some stuff only updates in menus or w/e
-	@00	Up/?accel
-	@01	Dn/?brake
+- may need different labels for menu or racing context, but the actual translation from 'final' arrays appears to be the same both ways
+	@00	accel
+	@01	brake
 	@02	camera cycle
 	@03	look back
-	@04	A/?tilt left
-	@05	D/?tilt right
-	@06
-	@07
-	@08
-	@09	esc/?pause
-	@10
-	@11
-	@12
-	@13
+	@04	tilt left
+	@05	tilt right
+	@06	?? none?
+	@07	repair
+	@08	slide
+	@09	pause
+	@10	?? comes from button[13]; common theme for these 4 seems to be referencing them for debug functionality
+	@11	?? comes from button[14]; for this block see: fn_445680
+	@12	?? comes from button[11]
+	@13	?? comes from button[12]
 	@14	axis y up
-	@15	axis y down
-	@16	axis x left
-	@17	axis x right
+	@15	axis y dn
+	@16	axis x lt
+	@17	axis x rt
 	@18	axis x neutral
 	@19	axis y neutral
-	@20
-	@21
-	@22
-	@23
+	@20	axis x lt soft
+	@21	axis x rt soft
+	@22	axis y up soft
+	@23	axis y dn soft
 	@24
 	@25
 	@26
@@ -143,16 +251,170 @@ INPUT BITFIELD (non-local; not sure if local is same)
 	@30
 	@31
 
+CONTROL_MAP STRUCT
+0x00	i8	flags
+		@00	output to analog
+		@01	output to digital
+		@02	input from analog data
+		@03	input from digital data
+		@04	treat analog value as positive (either this or following must be present or input will be ignored)
+		@05	treat analog value as negative
+		- in Input_ProcessInput_404DD0, if @0..7 == 0xFF, map reading will be skipped/ended
+0x04	i32	input offset, will be translated into general input table index depending on type of control map
+0x08	i32	output index
+0x0C END
 
+CONTROL_MAP_DEF_FUNC STRUCT
+0x00	i32	output index
+0x04	char*	string associated with map target; needs to be run through translate fn before comparing with string on file
+0x08	i8	default flags
+0x09 END
+- 0x0C bytes with padding
 
-KEYBOARD INPUT TABLE
-by index of arrays at 0x50E028, 0x50E868, 0x50F668
-keyboard inputs seem to be indexed via ascii scancodes
-  with 0x80 added for 'escaped' codes
-  e.g. 0x1D=LCtrl, 0x9D=RCtrl
-  apparently the indices are dinput scancodes, see:
+CONTROL_MAP_DEF_INPUT STRUCT
+0x00	i32	output index
+0x04	char*	string associated with map input; may need to be run through translate fn
+0x08 END
+
+AXIS_CONFIG STRUCT
+- static allocation starting 0x50F0A8
+- seem to actually be floats, but asm uses non-fpu instructions in a lot of places
+0x00	u32	flags
+		@00	registered
+		@01	enabled
+0x04	i32	min value
+0x08	i32	max value
+0x0C	i32	center value, or some kind of calibration offset
+0x10	i32	deadzone
+0x14	f32	sensitivity?
+0x18 END
+
+FORCE_FEEDBACK_UNK STRUCT (of some kind, i think)
+0x0000	i32	number of effects (fn_404230)
+0x0004	ptr	ptr to array of effect ptrs (LPDIRECTINPUTEFFECT) (fn_404230, fn_4040A0)
+0x0008	data	effect (DIEFFECT) (fn_4040A0); 0x34 long, not 0x38
+0x003C	int	direction (pointed to by effect.rglDirection)
+0x0040
+0x0044
+0x0048
+0x004C
+0x0050
+0x0054
+0x0058
+0x005C
+0x0060
+0x0064
+0x0068
+0x006C
+0x0070
+0x0074
+0x0078
+0x007C
+0x0080
+0x0084
+0x0088
+0x008C
+0x0090
+0x0094
+0x0098
+0x009C
+0x00A0
+0x00A4
+0x00A8
+0x00AC
+0x00B0
+0x00B4
+0x00B8
+0x00BC	??	axes (pointed to by effect.rgdwAxes)
+0x00C0
+0x00C4
+0x00C8
+0x00CC
+0x00D0
+0x00D4
+0x00D8
+0x00DC
+0x00E0
+0x00E4
+0x00E8
+0x00EC
+0x00F0
+0x00F4
+0x00F8
+0x00FC
+0x0100
+0x0104
+0x0108
+0x010C
+0x0110
+0x0114
+0x0118
+0x011C
+0x0120
+0x0124
+0x0128
+0x012C
+0x0130
+0x0134
+0x0138
+0x013C	data	DIENVELOPE (fn_4046E0)
+0x0150	ptr	?? see fn_4046E0
+0x0154	u32	?? same type of value as 0x170 (fn_40A190)
+0x0158	ptr	?? ptr to string, strcmp with 0x4B4940 array at index indicated by 0x154 (fn_40A190)
+0x015C
+0x0160
+0x0164
+0x0168
+0x016C
+0x0170	i32	?? 'game effect' index? index corresponds to array at 0x4D6CE8
+		- seems to always be assigned in increasing order, see fn_40A160
+0x0174 END
+
+FORCE_FEEDBACK_EFFECT enum
+- based on strings pointed to by array at 0x4B4940
+- seems like they were modified from a list made for shadows of the empire
+"GForce"
+"EnginePullLeft"
+"HeavySlideSlip"
+"PitBob"
+"Acceleration3"
+"Acceleration3"
+"TurboStart"
+"StartBoost"
+"EndBoost"
+"SwampMuck"
+"RollLeft"
+"Repair"
+"IceSlide"
+"AirSlide"
+"SecondaryWeapon"
+"ActivateTow"
+"ReleaseTow"
+"AutoCenter"
+"EnemyFire2"
+"HardLanding"
+"ObjCollision"
+"EngineBlowOutLeft"
+"Crashing"
+"EngineRumble"
+"PodWake"
+"Shockwave"
+"EngineFireLeft"
+"Exploding"
+
+GENERAL INPUT TABLE (prev. thought to be keyboard only)
+- by index of arrays at 0x50E028, 0x50E868, 0x50F668
+- combines digital inputs from all input types supported by the game
+- although it makes space for several joystick and mouse devices, there is only space for one set of keyboard data
+	- when reading input, the game just overwrites the keyboard state again when iterating over the keyboard devices
+	- however, with mouse and joystick, it progresses to the next 'slot'
+	- i.e. it actually does seem to read multiple joysticks at once, but in practice only refers to slot 0?
+- keyboard inputs seem to be indexed via ascii scancodes
+  - with 0x80 added for 'escaped' codes
+  - e.g. 0x1D=LCtrl, 0x9D=RCtrl
+  - apparently the indices for the keyboard range are dinput scancodes, see:
     https://gist.github.com/tracend/912308
-
+  - also see: https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h
 0x000  000	
 0x001  001	Esc
 0x002  002	1
@@ -409,266 +671,20 @@ keyboard inputs seem to be indexed via ascii scancodes
 0x0FD  253	
 0x0FE  254	
 0x0FF  255	
-0x100  256	
-0x101  257	?? fn_407F80
-0x102  258	
-0x103  259	
-0x104  260	
-0x105  261	
-0x106  262	
-0x107  263	
-0x108  264	
-0x109  265	
-0x10A  266	
-0x10B  267	
-0x10C  268	
-0x10D  269	
-0x10E  270	
-0x10F  271	
-0x110  272	
-0x111  273	
-0x112  274	
-0x113  275	
-0x114  276	
-0x115  277	
-0x116  278	
-0x117  279	
-0x118  280	
-0x119  281	
-0x11A  282	
-0x11B  283	
-0x11C  284	
-0x11D  285	
-0x11E  286	
-0x11F  287	
-0x120  288	
-0x121  289	
-0x122  290	
-0x123  291	
-0x124  292	
-0x125  293	
-0x126  294	
-0x127  295	
-0x128  296	
-0x129  297	
-0x12A  298	
-0x12B  299	
-0x12C  300	
-0x12D  301	
-0x12E  302	
-0x12F  303	
-0x130  304	
-0x131  305	
-0x132  306	
-0x133  307	
-0x134  308	
-0x135  309	
-0x136  310	
-0x137  311	
-0x138  312	
-0x139  313	
-0x13A  314	
-0x13B  315	
-0x13C  316	
-0x13D  317	
-0x13E  318	
-0x13F  319	
-0x140  320	
-0x141  321	
-0x142  322	
-0x143  323	
-0x144  324	
-0x145  325	
-0x146  326	
-0x147  327	
-0x148  328	
-0x149  329	
-0x14A  330	
-0x14B  331	
-0x14C  332	
-0x14D  333	
-0x14E  334	
-0x14F  335	
-0x150  336	
-0x151  337	
-0x152  338	
-0x153  339	
-0x154  340	
-0x155  341	
-0x156  342	
-0x157  343	
-0x158  344	
-0x159  345	
-0x15A  346	
-0x15B  347	
-0x15C  348	
-0x15D  349	
-0x15E  350	
-0x15F  351	
-0x160  352	
-0x161  353	
-0x162  354	
-0x163  355	
-0x164  356	
-0x165  357	
-0x166  358	
-0x167  359	
-0x168  360	
-0x169  361	
-0x16A  362	
-0x16B  363	
-0x16C  364	
-0x16D  365	
-0x16E  366	
-0x16F  367	
-0x170  368	
-0x171  369	
-0x172  370	
-0x173  371	
-0x174  372	
-0x175  373	
-0x176  374	
-0x177  375	
-0x178  376	
-0x179  377	
-0x17A  378	
-0x17B  379	
-0x17C  380	
-0x17D  381	
-0x17E  382	
-0x17F  383	
-0x180  384	
-0x181  385	
-0x182  386	
-0x183  387	
-0x184  388	
-0x185  389	
-0x186  390	
-0x187  391	
-0x188  392	
-0x189  393	
-0x18A  394	
-0x18B  395	
-0x18C  396	
-0x18D  397	
-0x18E  398	
-0x18F  399	
-0x190  400	
-0x191  401	
-0x192  402	
-0x193  403	
-0x194  404	
-0x195  405	
-0x196  406	
-0x197  407	
-0x198  408	
-0x199  409	
-0x19A  410	
-0x19B  411	
-0x19C  412	
-0x19D  413	
-0x19E  414	
-0x19F  415	
-0x1A0  416	
-0x1A1  417	
-0x1A2  418	
-0x1A3  419	
-0x1A4  420	
-0x1A5  421	
-0x1A6  422	
-0x1A7  423	
-0x1A8  424	
-0x1A9  425	
-0x1AA  426	
-0x1AB  427	
-0x1AC  428	
-0x1AD  429	
-0x1AE  430	
-0x1AF  431	
-0x1B0  432	
-0x1B1  433	
-0x1B2  434	
-0x1B3  435	
-0x1B4  436	
-0x1B5  437	
-0x1B6  438	
-0x1B7  439	
-0x1B8  440	
-0x1B9  441	
-0x1BA  442	
-0x1BB  443	
-0x1BC  444	
-0x1BD  445	
-0x1BE  446	
-0x1BF  447	
-0x1C0  448	
-0x1C1  449	
-0x1C2  450	
-0x1C3  451	
-0x1C4  452	
-0x1C5  453	
-0x1C6  454	
-0x1C7  455	
-0x1C8  456	
-0x1C9  457	
-0x1CA  458	
-0x1CB  459	
-0x1CC  460	
-0x1CD  461	
-0x1CE  462	
-0x1CF  463	
-0x1D0  464	
-0x1D1  465	
-0x1D2  466	
-0x1D3  467	
-0x1D4  468	
-0x1D5  469	
-0x1D6  470	
-0x1D7  471	
-0x1D8  472	
-0x1D9  473	
-0x1DA  474	
-0x1DB  475	
-0x1DC  476	
-0x1DD  477	
-0x1DE  478	
-0x1DF  479	
-0x1E0  480	
-0x1E1  481	
-0x1E2  482	
-0x1E3  483	
-0x1E4  484	
-0x1E5  485	
-0x1E6  486	
-0x1E7  487	
-0x1E8  488	
-0x1E9  489	
-0x1EA  490	
-0x1EB  491	
-0x1EC  492	
-0x1ED  493	
-0x1EE  494	
-0x1EF  495	
-0x1F0  496	
-0x1F1  497	
-0x1F2  498	
-0x1F3  499	
-0x1F4  500	
-0x1F5  501	
-0x1F6  502	
-0x1F7  503	
-0x1F8  504	
-0x1F9  505	
-0x1FA  506	
-0x1FB  507	
-0x1FC  508	
-0x1FD  509	
-0x1FE  510	
-0x1FF  511	
-0x200  512	?? in several functions
-0x201  513	?? fn_407F80
-0x202  514	
-0x203  515	
+0x100  256	[8]JOYSTICK_DIGITAL_INPUTS
+		0x00	[16]int buttons
+		0x10	[4]DPAD
+			0x00 left
+			0x01 up
+			0x02 right
+			0x03 down
+		0x20*8 = 0x100 = 0x200 END
+		see Input_ReadJoysticksDigital_486340
+		see fn_407F80; btn[1] ref
+0x200  512	?? mouse0 left; start of mouse block, space for 4? mice, see Input_ReadMouse_486710
+0x201  513	?? mouse0 right; also see fn_407F80
+0x202  514	?? mouse0 middle
+0x203  515	?? mouse0 back (button4?)
 0x204  516	
 0x205  517	
 0x206  518	
@@ -681,4 +697,52 @@ keyboard inputs seem to be indexed via ascii scancodes
 0x20D  525	
 0x20E  526	
 0x20F  527	
-0x210 END
+0x210 END	?? end of mouse block, see Input_ReadJoysticks_486340
+
+CURSOR_STATE
+- global struct at 0xEC8740
+- see fn_4083D0 (pretty much everything set here), fn_4081C0, fn_415400
+0x00	u32		flags
+				@00  either position changed - @29 or @31
+				@01  button state changed - accept (just on mouse only)
+				@02  button state changed - cancel (just on)
+				@28  either button state changed - @01 or @02
+				@29  axis position changed
+				@30  ?? seems unused but referenced;  see fn_415400
+				@31  mouse position changed
+0x04	u32?	?? button state
+				@01  accept input just on (mouse only)
+				@02  cancel input just on
+0x08	u32?	?? button state prev
+0x0C	i32		mouse x
+0x10	i32		mouse x prev
+0x14	i32		mouse y
+0x18	i32		mouse y prev
+0x1C	f32		?? axis 1
+0x20	f32		?? axis 1 prev
+0x24	f32		?? axis 2
+0x28	f23		?? axis 2 prev
+0x2C END
+
+
+Input Codes
+
+Shift	F4	4		(Watto's Shop) +1000 Truguts
+Alt	H			? seems to show trugut cheat hint, not sure other conds to show
+Ctrl	F10			? related to invincibility, seems to need debug menu enabled to work
+Ctrl	F11			toggle that works in conjunction with -snafu, shows fps
+I	F	L	Y	? possibly debug related, sets flag that is ref'd in Unk_Test_TerrainHandler_476EA0
+RCtrl	N	K		(Vehicle Select) Jinn Reeso
+LCtrl	C	Y		(Vehicle Select) Cy Yunga
+RCtrl	LAlt			(Track Detail) Toggle Mirror mode, set cantina mirroring OFF
+Ctrl	LAlt	RAlt		(Track Detail) Toggle Mirror mode, set cantina mirroring ON
+Num*	T			Speedup cheat
+F12				Screenshot
+F5				taunt (cycle)
+F6				taunt (random)
+F7				show chat prompt
+Ctrl	M			Toggle Mouse
+Ctrl	J			Toggle Joystick
+Ctrl	F			Toggle Force Feedback
+Ctrl	Q			(Multiplayer) ??
+ScrLk	Home			Unlock all pods and tracks cheat

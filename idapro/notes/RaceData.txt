@@ -1,27 +1,37 @@
-Player Pod Race State found at 0x00E29BC0 (static)
-
-- look into why timer acts fucky when crossing the line on last lap (https://www.youtube.com/watch?v=ivxnSLbTLbo)
+- TODO: look into why timer acts fucky when crossing the line on last lap (https://www.youtube.com/watch?v=ivxnSLbTLbo)
 
 so this is actually the "driver" data? which is why it's paired with the "vehicle" (enginedata) data
+
+
+CONSTANTS
+
+0x4C2BB0	vehicle base stats
+0x4C3114	base stats used for AI racers regardless of vehicle
+		HoverHeight, BumpMass and ISectRadius for AI are vehicle-dependent and come from normal base stats tho
+0xE29BC0	[14]RACEDATA	global array of racedata objects
+		- player's racedata at index 0
+		- used for multiplayer and splitscreen
+		- unsure if this is the same as the "general" racedata array with AI etc.
+
 
 OFFSETS
 
 0x0000 (u32?)	index;  confirm type & byte alignment
 0x0004 (u32)	4-byte ascii "control" string; known values: Locl, AAII, REMO
 0x0008 (u32)	flags
-	@00 has control? turned on when countdown ends (see fn_45E200)
-	@01 race finished?
-	@02 ???  ref in 46BEC0
-	@03 ???  called from 4783E0(), set in 46BEC0
-	@04 ???  ref in 46BEC0
-	@05 ???  ref in 46BEC0, related to @04
+	@00	has control? turned on when countdown ends (see fn_45E200)
+	@01	race finished (fn_45EA30)
+	@02	??  ref in 46BEC0, 45EF70
+	@03	?? possibly braking related;  called from 4783E0(), set in 46BEC0
+	@04
+	@05	racer character is track favorite (fn_45B7D0)
 	@06
 	@07
 	@08
 	@09 
 	@10
-	@11 ???  ref in 46BEC0, related to @04
-	@12 ???  ref in 46BEC0, related to @05
+	@11	??  ref in 46BEC0, related to @04
+	@12	??  ref in 46BEC0, related to @05
 	@13
 	@14
 	@15
@@ -43,7 +53,7 @@ OFFSETS
 	@31
 0x000C (ptr)	file data
 0x0010 (u32)	player slot; low byte only
-0x0014	??	default set in fn_45BD90 (0)
+0x0014	u32	racer slot; i.e. Hang->Racers index
 0x0018 (ptr)	Non-gameplay character data, see VehicleMetadata.txt
 	refs in: 427590
 0x001C			vehicle stats
@@ -73,5 +83,5 @@ OFFSETS
 0x0078 (u32?)	Current Lap;  confirm type & byte alignment
 0x007C
 0x0080 (???)	'determines how much damage parts take after race' from LP
-0x0084 (ptr)	PodEngineState
+0x0084 (ptr)	ptr to Test entity associated with this data
 0x0088 END

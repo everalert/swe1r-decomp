@@ -1,0 +1,48 @@
+CONSTANTS
+
+0x4C3C38	[6]m44	?? static matrices used for math in fn_44E660
+
+
+LAP_COMPLETION
+0x00 	*SPLINE	pSpline
+0x04		?? see fn_44EEB0, fn_44EC40
+0x08	f32	SplinePoint_ProgressDif;  see fn_44EEB0
+0x0C		
+0x10	i32	SplinePointA_ProgressIdx;  see fn_44E620, fn_44EAA0
+0x14	i32	SplinePointB_ProgressIdx;  see fn_44E620, fn_44EAA0
+0x18	i32	?? unk spline point index
+0x1C	i32	?? unk spline point index
+0x20	BOOL	?? see fn_44EAA0, fn_44EC40		
+0x24	BOOL	?? see fn_44EAA0, fn_44EC40
+0x28		?? see fn_44EAA0
+0x2C	u32	?? some kind of count;  see fn_44EAA0, fn_44E620
+0x30 END
+
+
+SPLINE  (SW_RACER_RE: swrSpline)
+0x00	i16	
+0x02	i16	
+0x04	i32	NumPoints       dd ?
+0x08	i32	NumSegments     dd ?
+0x0C	*SPLINE_CONTROL_POINT array;  previously "flags" ??
+0x10 END
+- 0x10 previously [32]SPLINE_CONTROL_POINT
+
+
+SPLINE_CONTROL_POINT  (SW_RACER_RE: swrSplineControlPoint)
+0x00	i16	Splits;  aka next count
+0x02	i16	Joins;  aka prev count
+0x04	i16	?? next 1;  smells like parent/child or such, menu tree nodes looked like this before being sussed out
+0x06	i16	?? next 2
+0x08	i16	?? prev 1
+0x0A	i16	?? prev 2
+0x0C	i16	?? prev 3
+0x0E	i16	?? prev 4
+0x10	vec3	Position        VEC_3 ?
+0x1C	vec3	?? rotation
+0x28	vec3	HandleA         VEC_3 ?
+0x34	vec3	HandleB         VEC_3 ?
+0x40	i16	ProgressIndex
+0x42	[8]i16	?? unk point indices;  see fn_47E8B0
+0x52		
+0x54 END

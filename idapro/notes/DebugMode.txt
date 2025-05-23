@@ -2,12 +2,12 @@
 0x50CO44 = debug enabled
 0x50CO48 = debug flags, aka "debug text"
 	@00	??? ref in 445680, 445860; shows "gnome" text
-	@01	editing vehicle stats
+	@01	editing vehicle stats;  ref: fn_42AB60
 	@02	toggling invincibility
 	@03	editing ai level, ai spread, deathspeedmin, deathspeeddrop
 	@04	toggling spline markers
 	@05	toggling mirrored mode
-	@06	
+	@06	?? unlock pods+tracks cheat, see hang cb14
 	@07	??? ref in 4337E0 "largest function"
 	@08	??? ref in 46BB70, 46BEC0, 4709A0, 470AE0
 	@09	?? enable/allow hide UI hotkey?; ref in 42C1A0, 466E40, 483CB0
@@ -26,7 +26,7 @@
 	@22	
 	@23	
 	@24	
-	@25	??? ref in 46BEC0
+	@25	?? RRDUAL mode according to tilman, ref in 46BEC0(HandleInputs)
 	@26	
 	@27	
 	@28	

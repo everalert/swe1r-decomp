@@ -77,13 +77,18 @@ Unk_Hang_NewMenuAsync_4BFEDC
 MenuCursorDelayY_maybe_E295A0
 MenuCursorDelayX_maybe_E295D8
 MenuCursorPosX_maybe_E295D0
-
+0x4BFEC8	enum			stored menu screen, this might be part of a static Hang obj?
+0x4BFECC	enum			stored menu screen
+0xE2993C	**MODEL_NODE		ptr array of all the model parts of the pod
+					same structure as Test+0x344; both passed into Test_UpdateEngineExhaust_46F2C0
+					in practice, different offsets have pointers filled in, so not sure exactly
 
 OFFSETS
 
 0x00	u32	Entity keyword
 0x04	u32	Entity flags
 0x08	i32	menu screen
+		- HANG_MENU enum in ida
 		- not strongly linked to loaded area, it's only for selecting which screen to show, 0x38 is for the actual room/scene
 		- does not do the in-race ui or pause menu
 		-1	MENU NOT SET
@@ -108,6 +113,7 @@ OFFSETS
 		16	championship podium scene
 		17	unlock new racer scene
 		18	cantina entry with character cutscene; state assigned async in 435240
+		19	?? see Hang_DoMenuTransition__454D40, not in main switch
 0x0C		previous menu screen
 0x10	u32	which text menu to show
 		- what each value does depends on which menu screen you're on
@@ -132,15 +138,18 @@ OFFSETS
 0x30 	ptr	Holotable Model Node
 0x34	i32	watto's shop camera state
 		- whole range seems to be 0-39, based on fn_45BDE0
+		-1	NONE; see fn_459150
 		1	counter - buy parts
+		2
+		3	?? see fn_45C0B0, checked not this
 		4..19	junkyard - various part locations
-		20	inspect - default
+		20	inspect - default; rival scene
 		21	inspect - cockpit
 		22	inspect - engine 1
 		23	inspect - engine 2
 		24	inspect - engine 3
 		25	inspect - engine 4
-		26	inspect - PT01
+		26	inspect - PT01; new racer unlock scene
 		27	inspect - PT02
 		28	inspect - PT03
 		29	inspect - PT04
@@ -154,6 +163,8 @@ OFFSETS
 		37	cantina - close holotable (track, circuit, etc.)
 		39	cantina - entry cutscene
 0x38	i32	room/physical space
+		HANG_ROOM enum in ida
+		-1	?? none; see Hang_LoadAssets_4586E0
 		0	shop
 		1	junkyard
 		2	inspect/hangar
@@ -184,14 +195,19 @@ OFFSETS
 		game crashes if starting normal race with it on?
 		sets racers to 1 if on, playercount <=1, not tournament or time attack, skipping
 		seems connected to +0x14; used in cb24; default set in fn_45BD90 (0), set to 2 in fn_435240
-		see also fn_45BAB0
-0x68	i32	?? race option (index 6); see fn_43B880 (draw track detail menu)
-		seems to set where to send the player after running 'Abrt' event
-		run on menu screen 0 ("legal")
-		seems connected to +0x14; used in cb24; default set in fn_45BD90 (-1), ref in fn_434EC0, fn_434EA0 load race macro
-		range -1..20
-		loading race with it set to 20 makes the game go back to the menu instead of to the race
-		setting >= 0 will make 'Scen' entity/entities? active during LoadRace function
+		see fn_45BAB0 GetRacerTrackFavoriteIndex
+			- if truthy, skips logic requiring AI racer and returns 0 if not found
+		see fn_45B7D0 InitRaceData
+			- sets control string to 'AAII' if truthy, overriding 'Locl' if necessary
+			- shows this val can be 2 (i.e. not BOOL)
+0x68	??	?? race option (index 6); see fn_43B880 (draw track detail menu)
+		- seems to set where to send the player after running 'Abrt' event
+		- run on menu screen 0 ("legal")
+		- seems connected to +0x14; used in cb24; default set in fn_45BD90 (-1), ref in fn_434EC0, fn_434EA0 load race macro
+		- range -1..20
+		- loading race with it set to 20 makes the game go back to the menu instead of to the race
+		- setting >= 0 will make 'Scen' entity/entities? active during LoadRace function
+		- used in scen begn event payload+0x04, called from hang load race fn (fn_45B290); skips jdge begn on this path
 0x6C	u8	tournament mode
 0x6D	u8	time attack mode
 0x6E	u8	mirror

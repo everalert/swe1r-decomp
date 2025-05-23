@@ -13,8 +13,16 @@ CONSTANTS
 0xE2AEC0  [7]f32	upgrade stat UI widths; i.e. "UI-formatted" stats
 0xE2AF40  [7]f32?	upgrade stat UI widths for selected part in shop; used to calc stat bar subsegment
 0x50C928  u32		stat bar drawing index? reset in HangCallback0x14
+0x50C058  BOOL		hide all quads/sprites
 0x4554CC  f32		stat bar height; static value not used for all cases, see draw stats fn asm
 0x4B91B8  u32		initialized quads index; always at first uninitialized slot, max 400
+0x4D7C68  [149]RESMAP	sprite ptr to id mappings
+0x4D79F8  [149]BOOL	TGA markers for sprite ptr id mappings
+			extra freeing steps will happen for marked sprites due to being heap-allocated
+			see fn_417090
+0xE9A280  [160]i16	?? list of quad ids
+			see fn_42D380, seems every 2nd is used as id?
+			seems lighting-related, setter fn_42D460 only used by lighting fns
 
 
 FUNCTIONS
@@ -81,13 +89,14 @@ fn_446FB0(index:u32)
 	- seems to be used to load a sprite from spriteblock from a given index, returning a ptr to the loaded data
 	- just calls fn_446CA0 and forwards the output
 
-fn_412E90(index:u32, filename:[*:0]const u8)
-	- tries to load a TGA with the given filename into given internal resource index, then return 1
+fn_412E90(id:u32, filename:[*:0]const u8)
+int __cdecl Unk_Quad_LoadAndMapSprite__412E90(int Id, const char *Filename)
+	- tries to load a TGA with the given filename into given internal resource id, then return 1
 	- if no filename given (nullptr), tries to load a sprite from spriteblock with the same index
 	- if successful, map the resource to the given index and return 1
 	- if the given index already has a resource attached, skip the whole thing and return 1
 	- otherwise (i.e. no filename given OR loadable spriteblock index) return 0
-	- filename given without extension
+	- filename given without extension or file path
 
 fn_412F60
 	- clears out quad array indices 251..399 with null pointers; not sure when/why it triggers
@@ -95,60 +104,145 @@ fn_412F60
 fn_428370
 	- clears out all initialized quads, resetting the initialized quad index to 0
 
-fn_416FD0
+fn_435240
+	- seems to do the title screen rendering; calls quad_setposition on logo text quads
+
+void __cdecl Unk_Quad_MapSpriteToId__416FD0(SWR_SPRITE *pSprite, int Index, BOOL QueueFree)
 	- seems to map pointer of loaded sprite data to internal resource index of some kind?
+	- used to connect loaded TGA data to ids
+	- arg3 unk, looks like BOOL, stored in separate array to mappings at 0x4D79F8
+
+SWR_SPRITE *__cdecl Unk_Quad_GetMappedSprite__417010(int Id)
+
+fn_414420
+	- takes in ptr to sprite and BOOL
+	- called by fn_40BBF0 in relation to some video settings
+	- called by fn_40BC80 in relation to some audio settings
 
 Unk_swrQuad_UpdateMouseCursor_408220
+
+void Unk_swrQuad_ProcessQuads__4283B0(int a1)
+	- renders all the quads, including but not limited to the quad queue
+	- arg changes behaviour mainly to do with color (doesn't seem to affect the quad queue part tho)
+
+void __cdecl Unk_swrQuad_DrawSprite__44F670(void *Sprite, i16 X, i16 Y, float ScaleX, float ScaleY, float Angle, __int16 a7, __int16 a8, int Flags, int R, int G, int B, int A)
+	- seems to draw an individual sprite directly, without going through a Quad struct
+	- DrawQuad calls this to do the actual drawing
+	- calls fn_44F160 to do the actual drawing
+	- flags
+		@00
+		@01
+		@02
+		@03	inactive (skips drawing)
+		@04
+		@05	no scaling (both scale params are 1); set on/off in function
+		@06	hi-res mode; viewport size doubled for the duration of this sprite draw
+		@07
+		@08	?? increments sth +16 if @13 off, and again elsewhere if @14 on
+		@09
+		@10
+		@11
+		@12
+		@13	flip horizontal
+		@14	flip vertical
+		@15
+		@16
+		@17	treat X,Y coords as center of sprite, rather than top-left
+		@18
+		@19
+		@20
+		@21
+		@22	?? checked in conjunction with @23, skips running fn_44EFA0; see fn_44F160
+			if this OR @23 are on, uses alternate draw fn path
+			but if this bit is on, calls a null fn instead of the draw fn; maybe stripped debug draw fn?
+		@23	rotate sprite; angle field ignored if off
+			seems to rotate 'pages' individually, not the whole image collectively
+			seems to cause some other things to be ignored, e.g. @06
+			also causes half the sprite to not render, or draw pieces flipped?
+			probably assumes the sprite is in a particular format
+		@24	?? some kind of scaling; pairs with @26
+		@25	?? some kind of scaling; pairs with @27
+		@26	?? some kind of scaling; pairs with @24
+		@27	?? some kind of scaling; pairs with @25
+		@28	?? fn_44F160
+		@29
+		@30
+		@31
+
+void __cdecl Unk_swrQuad_DrawQuad__428030(SWR_QUAD *Quad, unk2, float PixelSizeX, float PixelSizeY)
+	- the function called when actually drawing the items in the QUAD queue, see ProcessQuads
+	- pixel size refers to how many real pixels covers a 'virtual' pixel
+		- 320x240 or 640x480 depending on context, but you can put in anything when using manually
+	- thought unk2 was COLOR_U8, but seems not to be the case exactly? colors do get copied in tho
+		- seems to actually be flags, but the function reuses it to store color halfway through?
+
+void Unk_swrQuad_LightingResetState__42D380()
+void Unk_swrQuad_LightingSetId__42D460(int Index, int QuadId)
+void Unk_swrQuad_LightingResetMemory__42D470()
+void Unk_swrQuad_LightingSetSlots__42D410(int Slots)
+[80]i8		Unk_swrQuad_LightingStateArr__E9A960
+[160]i16	Unk_swrQuad_LightingIdArr__E9A280; maybe [80]i32?
+i32		Unk_swrQuad_LightingSlots__4B9534
 
 
 QUAD STRUCT
 
-0x00	u16	x (assumes screen space of 320x240)
-0x02	u16	y
-0x04		?? possibly unused
+0x00	i16	x (assumes screen space of 320x240)
+0x02	i16	y
+0x04	i16	?? passed on to DrawSprite arg7; multiplied by PixelSizeX, ratio x? see fn_4286C0 and caller
+0x06	i16	?? passed on to DrawSprite arg8; multiplied by PixelSizeY, ratio y? see fn_4286C0 and caller
 0x08	f32	x scale (i.e. 1 = sprite width px in screen space)
 0x0C	f32	y scale
-0x10		?? set to 0 in fn_4282F0, set manually in fn_428720; no other refs in ida, basically always 0 in game memory
+0x10	f32	rotation angle
 0x14	u32	flags
-	1<<00	?? set on during quad init
-	1<<01
-	1<<02	flip horizontal
-	1<<03	flip vertical (TGAs loaded are rendered flipped vertically by default?)
-	1<<04
-	1<<05	visible
-	1<<06
-	1<<07
-	1<<08
-	1<<09	?? seen in fn_464630
-	1<<10
-	1<<11	?? seen in fn_464630, fn_408220
-	1<<12	?? seen in fn_464630
-	1<<13	enable world-space clipping; i.e. draw in 3d space, not in front of everything
-	1<<14	?? on for lens flares, see fn_464010;
-	1<<15	?? 'sprite has transparency'? .. leaving off has the effect of a black faded border on color mask sprites, as though the mask is being applied to the black part of the image rather than on the color you give it; on for lens flares, see fn_464010; seen in fn_458250, fn_464630
-	1<<16	high-res mode (320x240->640x480)?  on for lens flares, see fn_464010; on for "STAR" title text, see fn_435240
-	1<<17
-	1<<18
-	1<<19	?? ref in fn_4584A0, used on track select icons (both flags and the plain one)
-	1<<20
-	1<<21
-	1<<22
-	1<<23
-	1<<24
-	1<<25
-	1<<26
-	1<<27
-	1<<28
-	1<<29
-	1<<30
-	1<<31
+	@00	?? set on during quad init
+	@01
+	@02	flip horizontal; maps to DrawSprite flags @13
+	@03	flip vertical (TGAs loaded are rendered flipped vertically by default?); maps to DrawSprite flags @14
+	@04	?? maps to DrawSprite flags @15
+	@05	visible
+	@06	?? maps to DrawSprite flags @16
+	@07	?? maps to both DrawSprite flags @24 and @25
+	@08	?? maps to DrawSprite flags @23 ("rotate")
+	@09	?? seen in fn_464630; maps to DrawSprite flags @01
+	@10	?? maps to DrawSprite flags @00
+	@11	?? seen in fn_464630, fn_408220
+	@12	?? seen in fn_464630; maps to DrawSprite flags @17
+	@13	enable world-space clipping; i.e. draw in 3d space, not in front of everything; maps to DrawSprite flags @04
+	@14	?? on for lens flares, see fn_464010;
+		maps to DrawSprite flags @22
+	@15	?? 'sprite has transparency'? .. 
+		leaving off has the effect of a black faded border on color mask sprites, as though the mask is being applied to the black part of the image rather than on the color you give it
+		on for lens flares, see fn_464010; seen in fn_458250, fn_464630
+		maps to DrawSprite flags @28
+	@16	high-res mode (320x240->640x480)?  on for lens flares, see fn_464010; on for "STAR" title text, see fn_435240
+		maps to DrawSprite flags @06
+	@17
+	@18
+	@19	?? ref in fn_4584A0, used on track select icons (both flags and the plain one)
+	@20
+	@21
+	@22
+	@23
+	@24
+	@25
+	@26
+	@27
+	@28
+	@29
+	@30
+	@31
 0x18	u32	RGBA
 0x1C	ptr	pointer to sprite data used to draw the quad
 0x20 END
 
+RESOURCE MAP STRUCT
+0x00	ptr	pointer to sprite data
+0x04	int	resource id
+
 
 QUAD STRUCT ARRAY INDEXES
-possibly different layout between inrace and cantina
+different layout between inrace and cantina
 
 000	in-race hud - LAP angled green line; see fn_4603F0
 001	in-race hud - POS angled green line; see fn_4603F0
@@ -227,14 +321,14 @@ possibly different layout between inrace and cantina
 074	in-race - (flare) white circle
 075	in-race - (flare) white circle
 076	in-race - (flare) white circle
-077	in-race - (flare) white circle
-078	in-race - (flare) white circle
-079	in-race - (flare) white circle
-080	in-race - (flare) white circle
-081	in-race - (flare) white circle (81~140 same)
-082
-083
-084
+077	in-race - (flare) white circle; cantina - settings_btn_strch_sel.tga
+078	in-race - (flare) white circle; cantina - podhangar_backdrop.tga
+079	in-race - (flare) white circle; cantina - podhangar_backdrop2.tga
+080	in-race - (flare) white circle; cantina - 'greyed splash'
+081	in-race - (flare) white circle (81~140 same); cantina - logo 'episode I' text
+082	cantina - logo 'star' text
+083	cantina - logo 'wars' text
+084	cantina - logo 'racer' text
 085
 086
 087	?? ref in draw stat bar fn; indexes 87..97 all have fn_4287E0 called on them with 0x8000

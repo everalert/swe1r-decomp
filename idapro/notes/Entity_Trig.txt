@@ -28,7 +28,7 @@ ENTITY STRUCT
 0x00	Entity Header
 0x08	u32	trigger id?
 0x0C	u32	Flags
-		@00	triggered
+		@00	triggered/active
 		@01
 		@02	stage 1 triggered (2-stage trigger)
 		@03
@@ -60,8 +60,8 @@ ENTITY STRUCT
 		@29
 		@30
 		@31
-0x10	f32	?? but counts up like timer when trigger active; see fn_47C190, Callback0x24_47C710
-0x14	f32
+0x10	f32	?? timer; see fn_47C190, Callback0x24_47C710
+0x14	f32	?? timer
 0x18	vec3	?? dist to pod, but math'd; see Unk_Test_DoHittEvent_47CA90
 0x24	vec3	trigger center
 0x30	vec3	??
@@ -86,7 +86,7 @@ KNOWN TRIGGERS
 106	GNT tusken raiders
 107	EXE red carpet, unk effect
 108	slalom flag (ando prime)
-201	same as 202, unused
+201	unused; basically same as 202, slight setup difference in fn_47D380
 202	shattering rock (tatooine, INF, EXE)
 203	BEC tusken raiders
 208	ballooncraft (tatooine)

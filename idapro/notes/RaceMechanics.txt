@@ -18,3 +18,19 @@ Test -> flags2 -> @11 = boost start window active
 Jdge -> flags -> @5,@6 on seems to indicate race is in countdown
 
 countdown timer seems not to bleed into actual race timing, see loc_45E699
+
+
+
+TIMER GLITCH
+
+ref video with pos/comp text: https://www.youtube.com/watch?v=ivxnSLbTLbo
+
+addresses where test->lapcomp->spline_pt_a_progress_idx are written
+bottom two seem to only execute when splits/joins in the spline are near
+0047E9A5 - 89 51 10  - mov [ecx+10],edx
+0044EB4D - 89 41 10  - mov [ecx+10],eax
+0047E910 - 89 79 10  - mov [ecx+10],edi
+0044EC2A - 89 51 10  - mov [ecx+10],edx
+all of above fall under these functions
+fn_44EAA0	fired through GetSplineTransform__44ED80 >> fn_44EC40
+fn_47E8B0	fired through GroundMeshTransitionCheckMaybe__47FBB0

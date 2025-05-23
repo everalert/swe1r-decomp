@@ -18,8 +18,15 @@ FUNCTIONS
 
 CONSTANTS
 
-0xE28A20	vtable of refs to loaded dust effect models
-0xE270C8	ptr to dust effect model vtable
+0xE270C8  MODEL_NODE**	ptr to dust effect model vtable
+0xE27260  MODEL_NODE[]	static array of model nodes used to store references to loaded toss models
+			children of these nodes are set to the same values placed in the E28820 array
+			initialized with 0xD065 flags
+0xE28740  MODEL_NODE	parent node to dust nodes, pChildren field set to 0xE28A20 node array
+			initialized with 0x5064 flags
+0xE287F8  MODEL_NODE*	static pointer to parent node (0xE28740)
+0xE28820  MODEL_NODE*[]	static array of references to child nodes of the loaded model data
+0xE28A20  MODEL_NODE*[]	static array of refs to entries in E27260 array, cleared to 0 for unused slots
 
 
 ENTITY EVENTS

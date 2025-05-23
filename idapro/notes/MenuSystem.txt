@@ -1,0 +1,270 @@
+TODO: callback action id meanings
+TODO: menu node id meanings
+TODO: remaining fields, flags
+
+
+CONSTANTS
+
+0x4D8160	??		some kind of structure
+					0xA0-long;  see fn_410FD0, fn_412E40
+					may be a 10-long array of 16-byte items;  see fn_4180C0, fn_411770
+					if so, struct looks like:
+						0x00	f32		??
+						0x04	f32		??
+						0x08	*MENU_NODE	??
+						0x0C	??		?? seen *MENU_NODE and i32 here
+						0x10 END
+
+0x4D878C	*MENU_NODE	selected node (i.e. e.g. highlighted by mouse), 0 if none;  fn_415400
+0x4D8790	*MENU_NODE	previous active node during keypress?  set on keydown (incl hold), cleared on keyup
+0x4D8794	*MENU_NODE	active node (i.e. the one receiving input)
+0x4D8798	*MENU_NODE	?? root node of current page?
+0x4B5D74	*MENU_NODE	ptr to root node
+0x4D8210	MENU_NODE	root node;  allocation truncated for no tail data, see fn_410FD0
+
+
+Callback Action IDs
+- behaviour from default callback unless otherwise stated; fn refs refer to
+  consumers of the action
+- at a global level, seems like these ids are treated as semantically equivalent;
+  i.e. seems that the same id means the same thing regardless of which callback impls it
+- TODO: add what the args mean (Value1, Value2) for each id
+1		?? node was marked or unmarked as selected (0x4D878C);  fn_415400, fn_414EB0, fn_415ED0
+		value1 = (BOOL) play 'selection changed' sound
+2		?? store node ptr in unk addresses, set flag bit2;  fn_415400
+3		?? clear node ptr from unk storage loc, unset flag bit2;  fn_415400
+4
+5		?? fn_415400
+6		?? fn_415400
+7		?? start kb nav event, process input;  fn_415640
+8		?? end kb nav event;  fn_415640
+9		?? seems to be for rendering?
+11
+12
+13  	?? node was marked or unmarked as active (the one taking input);  fn_414F70
+14		mark node as using sprites, or clear sprites and unmark
+18		?? run in 'accept button down' ctx;  fn_415400
+19		pop node from menu stack and discard, run in 'cancel button down' ctx;  fn_415400
+20  	?? fn_415ED0
+72  	?? fn_4156A0
+73		set cursor visibility;  fn_415400
+100		?? fn_41B690
+text bubble callback actions (fn_415CA0): 1, 2, 3, 4, 5, 9, 13, also runs default callbacks after
+label node callback actions (fn_415ED0): 1, 2, 3, 4, 5, 8, 9, 13, 16, also runs default callbacks
+dialogbox callback actions (fn_417F50): 7, 8, 19, 1000
+
+Menu Node IDs
+- semantic meaning of canned node ids
+- ?? unsure if these nodes are necessarily unique or in order in the node tree
+1	??
+2	?? ok button text bubble?  fn_411210, fn_415850 (action 70)
+3	?? occasionally on back buttons
+4	?? usually on back buttons
+24	?? input related, joystick;  fn_402250
+25	?? input related, mouse;  fn_402250
+26	?? input related, keyboard;  fn_402250
+60	?? fn_40C670
+..
+
+
+
+
+
+STRUCTURES
+
+MENU_SPRITE
+- game likes to get refs to these as offset 0x00 in MENU_NODE; in this case, 
+  index 24 there is 0x00 here
+0x00		u32			Flags
+						@00
+						@01
+						@02
+						@03 ?? fn_414E30
+						@04
+						@05
+						@06
+						@07
+						@08
+						@09
+						@10
+						@11
+						@12
+						@13
+						@14
+						@15
+						@16  ?? fn_412FB0
+						@17  ?? fn_4130E0
+						@18
+						@19
+						@20
+						@21  ?? may map to node flag @16 ON (vertical);  see fn_419DB0, fn_418CB0
+						@22  ?? may map to node flag @16 OFF;  see fn_419DB0, fn_418CB0
+						@23
+						@24
+						@25
+						@26
+						@27
+						@28
+						@29
+						@30
+						@31
+0x04		i32			sprite id;  see mapped sprite list in Sprite.txt for id meanings
+0x08		i32			quad idx
+0x0C		f32			x scale;  set to 1.0 in fn_412FB0, see also fn_4171A0
+0x10		f32			y scale;  set to 1.0 in fn_412FB0, see also fn_4171A0	
+0x14		vec4i		draw region;  see fn_4171A0
+0x24		i32			sprite width;  see fn_4171A0
+0x28		i32			sprite height;  see fn_4171A0
+0x2C		??			;  see fn_419030
+0x30		??			;  see fn_419030
+0x34		u32			RGBA Color;  see fn_413090
+0x38 END
+
+
+
+MENU_NODE
+0x000		*MENU_NODE	Prev Sibling
+0x004		*MENU_NODE	Next Sibling
+0x008		*MENU_NODE	Parent
+0x00C		*MENU_NODE	First Child
+0x010		ptr			fnCallback1  BOOL (__cdecl*)(MENU_NODE *, int, int, int)
+0x014		ptr			fnCallback2  BOOL (__cdecl*)(MENU_NODE *, int, int, int)
+0x018		??			?? looks like flags;  see fn_418B70, fn_413800, fn_413610, 
+   						fn_413A30, fn_4150E0, fn_413A90, fn_4145B0, fn_413B90
+0x01C		i32			?? Node ID;  may actually be node 'semantic type', if
+   						confirmed that node ids are not unique/ordered
+0x020		u32			Flags
+							@00  ?? seems multiplayer-related;  see callers of fn_411490, 
+   									fn_4114B0, fn_415850 (0x33)
+   							@01  ?? fn_417690, fn_415850, fn_415850 (0x33)
+   							@02  ?? fn_413B90, fn_41ABB0
+   							@03  ?? cursor hidden?  see fn_415850
+   							@04  node is marked as selected (0x4D878C)
+   									- fn_414EB0, fn_415850 (0x33)
+   							@05  node is marked as active (0x4D878C)
+   									- fn_415850 (0x33)
+   							@06  ?? sprites initialized?  see fn_414E80, fn_415850, fn_4150E0
+   							@07  ?? fn_418B70
+   							@08  node interaction disabled
+   									- drawn 'greyed out' (button faded, slider buttons hidden)
+   									- fn_415400, fn_419DB0, fn_416690, fn_414E80
+   							@09  ?? fn_41ABB0
+   							@10  ?? fn_414420
+   							@11  ?? node uses flashing color when selected?  fn_415850
+   							@12  selected/highlighted;  see fn_413B60, fn_402250
+   							@13
+   							@14
+   							@15
+   							@16  ?? use vertical orientation, or alternate style;  see fn_419DB0, fn_414420
+   							@17  flip horizontal;  see fn_419DB0
+   							@18  slider range uses marker;  fn_419DB0, fn_414420
+   							@19  slider shows range (has gradient);  fn_419DB0
+   							@20  slider range uses bracketed marker;  fn_419DB0
+   							@21  slider hides +/- buttons;  fn_419DB0
+   							@22
+   							@23
+   							@24  draw slider value as text? (see 0x544)
+   							@25
+   							@26
+   							@27
+   							@28
+   							@29
+   							@30
+   							@31
+0x024		vec4i		Bounding Box
+0x034		i32			Margin X
+0x038		i32			Margin Y
+0x03C		i32			tail data section 1 item count
+0x040		i32			tail data section 2 item count
+0x044		ptr			pointer tail data section 2; tail1 at 0x570, tail2 after
+0x048		??			?? fn_4156A0
+0x04C		??			?? fn_4156A0
+0x050		??			?? fn_4156A0
+0x054		??			start index of sprite group in 0x60 array;  fn_41AA90, fn_419140
+							- 'sprite group' here means a collection of sprites meant
+   							  to be joined and viewed as one, like a button
+   							- these are grouped so that e.g. the same random color
+   							  can be applied to all the sprites in the group
+0x058		??			sprite group len;  fn_41AA90, fn_419140
+0x05C		i32			number of sprites in 0x60 array
+0x060		arr			[20]MENU_SPRITE
+0x4C0		u32			unk rgba color 1
+0x4C4 		u32			unk rgba color 2
+0x4C8 		u32			unk rgba color 3
+0x4CC 		u32			unk rgba color 4
+0x4D0 		u32			unk rgba color 5
+0x4D4		ptr			ptr to unk text label
+0x4D8		u32			unk flags, text related
+							- see DrawAlignedText call in fn_417940
+0x4DC		i32			unk font id;  fn_416690
+0x4E0		vec4i		unk bbox;  fn_416690
+0x4F0		u32			unk flags
+							- fn_4132A0, fn_418CB0
+   							@16  ?? is settings button;  see fn_418CB0
+   							@17  ?? fn_418CB0
+   							@18  ?? fn_418CB0
+   							@19  ?? is sml window;  see fn_418CB0
+   							@20  ?? is window;  see fn_418CB0
+   							@21  ?? fn_418CB0
+   							@22  ?? fn_418CB0
+   							@23  ?? fn_418CB0
+   							@24  ?? is settings button with back icon;  see fn_418CB0
+0x4F4		??			?? unk string width;  see fn_414B30
+0x4F8		ptr			?? seems to be label 'subtitle';  see fn_414AB0, fn_415ED0
+0x4FC		??			?? could be flags, based on pattern above;  see fn_414AB0
+0x500		i32			font id for 0x4F8;  see fn_415ED0
+0x504		??			?? fn_413800, fn_417CA0
+							- windowbox block starts here?
+0x508		u32			unk flags
+							- related to 0x51C and 0x520, seemingly also 0x504
+   							@16  ?? fn_417CA0
+   							@17  ?? fn_4137A0, fn_417CA0
+   							@19  ?? fn_413800, fn_413610, fn_4137A0, fn_417CA0
+   							@20  ?? fn_413610, fn_417CA0
+   							@21  ?? fn_417CA0
+0x50C		vec4i		editbox region
+							- fn_417CA0
+0x51C		ptr			?? unk text label ptr;  fn_413800
+0x520		??			?? fn_413800, fn_413870
+0x524		??			?? fn_420600, fn_417CA0, fn_413520
+0x528		??			?? multiplayer-, and maybe lava-related
+							- fn_41B4D0, fn_420D10
+0x52C		u32			?? flags, seems to be for editbox
+							- fn_413430
+0x530		i32			editbox cursor position
+							- fn_418120, fn_416370
+0x534		i32			editbox max characters in input field (0x4D4 text)
+							- fn_418120, fn_413500
+0x538
+0x53C		BOOL		"value available"
+0x540		i32			"value"
+0x544		u32			slider flags
+							- seems to be same bitset as 0x20, see fn_413A90
+   							- however, some locations specifically check for a bit at
+   							  this address;  see fn_416690
+   							@24  draw slider value as text
+0x548		i32			slider length, including end bubbles
+							- fn_419DB0, fn_41A750, fn_413A90
+0x54C		i32			slider value
+							- fn_413B60, fn_41A640
+0x550		i32			slider bracket offset (gap per side)
+							- fn_419DB0, fn_41A640, fn_402250
+0x554		i32			slider bracketed marker offset
+							- fn_419DB0, fn_402250
+0x558		i32			slider increment amount
+							- fn_41A640, fn_413A90
+0x55C		??			slider value used for label
+							- uses 4C0 color, 4DC font, 4E0 bbox;  fn_416690
+							- used when printing value with slider (flag @24 on 0x544)
+							- set from audio gain via call to fn_413B30 in fn_40BC80
+							- also used in some multiplayer menus
+							- fn_413B10, fn_413B30, fn_416690
+0x560		??			?? multiplayer? lap;  fn_420D10
+0x564		??			?? multiplayer? current time;  fn_420D10
+0x568		??			?? multiplayer? total time;  fn_420D10
+0x56C		??			?? fn_420CC0, fn_420D10
+0x570 END	[]i32		tail data, unk contents
+							- static root node assumes structure is 0x570 bytes
+   							- standard node creation routine allocates 0x15C0 bytes as 
+   							  a baseline, plus some extra based on desired tail size
+   							- see 0x3C..0x44 for fields specifying tail details

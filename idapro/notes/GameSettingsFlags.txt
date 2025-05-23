@@ -6,14 +6,14 @@
 @03	?? see Unk_Sound__426D80, fn_431BA0 (setup fn?)
 @04	?? see fn_44CA00, fn_44CEB0
 @05
-@06	?? fog related? see fn_445960 (other setup fn?), fn_44E000, fn_44E0C0
+@06	?? fog disabled?  see fn_44E000, fn_445960 (other setup fn?), fn_44E0C0
 @07
 @08
 @09	?? see fn_4491F0
-@10	?? see fn_4834B0
-@11
-@12	?? see fn_440D90, fn_44CA00, fn_44CEB0
-@13
+@10	?? n64 output?  causes cropping that seems to match my n64 racer recording, see fn_4834B0
+@11	?? see fn_448F40
+@12	?? see fn_440D90, fn_44CEB0
+@13	?? see fn_44CA00
 @14	(cantina?) mirror mode; see fn_4104F0
 @15
 @16

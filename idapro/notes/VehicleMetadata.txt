@@ -20,8 +20,20 @@ STRUCTURE
 +0x30 (u32)		'Pupp' id (pilot model)
 0x34 END
 
-
 mars 0x08 ?
 0x4C28B4 = jinn first name
 -> 0x4C28A0 = jinn byte 0
 -> 0x4C2700 = anakin byte 0?
+
+vehicle visual metadata
+second set of vehicle metadata
+- 27*4 (108 or 0x6C) byte items
+- 0x4C7088 vec3, cockpit position (fn_470AE0, fn_4337E0); first address
+- 0x4C7094 vec3, engine position (fn_476740, fn_470AE0)
+- 0x4C70A0 vec3, base offset for camera sweep (fn_451EF0)
+- 0x4C70AC vec3, cable connection point on cockpit (right side) (fn_4337E0)
+- 0x4C70B8 vec3, cable connection point on engine (right side) (fn_4337E0)
+- 0x4C70C4 vec3, energy binder connection point (right engine?) (fn_471760)
+- 0x4C70D0 vec3, offset for 3rd person camera (fn_451EF0, fn_452AA0)
+- 0x4C70DC vec3, airstream position (fn_471760)
+- 0x4C70E8 vec3, airstream scale (fn_471760)

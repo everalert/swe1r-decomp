@@ -10,15 +10,20 @@ need to find it and consolidate here
 //0x04 byte[0x50], file block
 //-> 0x00 string[0x20], most recent loaded filename?
 //-> 0x20-0x23 = ??? (0x21 = 1?, 0x22 = file slot?)
-0x23 ref in fn_46BEC0
-	- 0,9 = ?? normal control
-	- 1-7 = ?? stiffer controls but much higher offthrottle slide at 1, higher number makes both stiffer
-	- 8 = no case in code, literally can't control the pod
+0x23 ref in fn_46BEC0(HandleInput), some kind of controls config
+	- 0,9 = ?? normal control, seems to be general input finalization
+		for all cases, very minimal outside of code all cases jump to
+	- 1-7 = ?? stiffer controls but much higher offthrottle slide at 1, 
+	        higher number makes both stiffer; at end jumps to halfway 
+	        through 0,9 case
+	- 8 = default case in code, seems you can't control pod, but code 
+	      jumps to halfway through 0,9 case
 //-> 0x24 byte, selected vehicle
 //-> 0x25 byte(flags), amateur circuit track unlocks, default 01
 //-> 0x26 byte(flags), semi-pro circuit track unlocks, default 01
 //-> 0x27 byte(flags), galactic circuit track unlocks, default 01
 //-> 0x28 byte(flags), invitational circuit track unlocks, default 00
+//-> 0x29 ??
 //-> 0x2A ushort(flags), amateur circuit placements (2bit/track)
 //-> 0x2C ushort(flags), semi-pro circuit placements (2bit/track)
 //-> 0x2E ushort(flags), galactic circuit placements (2bit/track)
@@ -26,7 +31,8 @@ need to find it and consolidate here
 //-> 0x32-0x33 = ???
 //-> 0x34 uint32(flags), vehicle unlocks (bits), default 0x012E0200
 //-> 0x38 long(signed), truguts
-//-> 0x3C-0x3F = ??? (0x3C has data)
+//-> 0x3C-0x3F = ??? (0x3C has data); 0x3C seems to be planet (of selected track?)
+	- seems to be flags for which planet cutscenes you've watched already, see fn_457410
 //-> 0x40 byte, pit droids
 //-> 0x41 7byte, upgrade levels
 //-> 0x48 7byte, upgrade healths
@@ -60,6 +66,14 @@ need to find it and consolidate here
 //-> 03 00 01 00
 
 //0x004 0x14 length data block?
+0x004	u32	?? seems to be crc of entire rest of tgfd
+0x008	??	
+0x009	u8	sfx vol
+0x00A	u8	music vol
+0x00B	??
+0x00C	u32?	settings flags
+0x010	u32	free play tracks
+0x014	u32	free play vehicles
 //-> structure = ???
 //-> seems to have track/vehicle unlock stuff, maybe freeplay related
 

@@ -25,6 +25,17 @@ camera roll related constants
 4ACEBC 
 4ACEC4
 
+0x50CCEC    i32		number of items in 0xE22820 array
+0xE22820    vec3[]	32-item array of positions of cameras associated with the active meta cams
+			- repopulated each frame in main metacam draw function
+
+
+FUNCTIONS
+
+0x482E60	double __cdecl Camera_GetDistToNearestActiveCamera__482E60(VEC_3 *pPoint)
+		- measures input to nearest camera associated with an active meta cam
+		- return float not double?
+
 
 META CAMERA INFO STRUCT
 - swrViewport in swe1r_re
@@ -85,7 +96,8 @@ META CAMERA INFO STRUCT
 0x002C	i32?	? 'viewport_y2';  screen space height
 0x0030  mat4x4	??
 0x0070	mat4x4	camera offset, 'model_matrix'
-		seems to be last step in building the camera position, possibly not used for 3d audio calculations
+		seems to be last step in building the camera position
+		possibly not used for 3d audio calculations
 0x00B0  mat4x4	?? seems to match the previous mat4 closely
 0x00F0	mat4x4	?? clip matrix
 0x0130	i16	??
@@ -122,6 +134,7 @@ Unk_MetaCam_SetupFn__483270(index: u32) void
 
 
 E28980 STRUCT, AKA 'META CAM 168'
+- seems to be swrModel_NodeMeshGroup, based on fn_44CA00
 - not sure how long it is, seems like there is only 1 tho
 0x14  ??	seems to be the count of something (used as max value of while loop in fn_44D7C0)
 0x18  ptr	sighted as E287E0
@@ -183,7 +196,7 @@ CAMERA STATE STRUCT
 0x0C	u32	?? settings related to following mat4 ptr
 		- could be 2x u16, game seems to ref these offsets separately a lot
 0x10	ptr	address of mat4 of 'target focus'
-0x14	mat4x4	??  possibly where the final calculated camera is stored; initialized in fn_428830
+0x14	mat4x4	view matrix (camera transformation matrix); initialized in fn_428830
 0x54	LOCATION	(vec3)Translation + (vec3)Rotation
 0x6C	vec3	related to XYZ, maybe a staging area; init in fn_428830
 0x78	ptr	unk swrModel_Node; see fn_428CD0

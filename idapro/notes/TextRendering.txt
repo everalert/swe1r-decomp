@@ -32,7 +32,7 @@ racer has a bespoke string formatting system for setting font, color, etc.
 		- col4 = 96FF96 (green)
 		- col5 = FF6450 (red)
 		- col6 = BC865E (brown)
-		- col7 = 6E6E80 (indigo-ish) 
+		- col7 = 6E6E80 (gray) 
 		- col8 = FFA7D1 (pink) 
 		- col9 = 985EFF (purple)
 	- ~b = all characters after will be skipped; code looks like it should only skip 1 tho
@@ -45,6 +45,8 @@ racer has a bespoke string formatting system for setting font, color, etc.
 	- ~r = right align
 	- ~n = interpret string length as y offset?
 	- ~~ = do nothing?
+- $ = copyright symbol in title screen text, doesn't seem to work for normal text tho
+- ASCII characters above 150 are converted to another character via LUT at 0x4BFA11 (LUT keys at 0x4BF9C2, indices at 0x4BFA10)
 
 
 CONSTANTS
@@ -125,7 +127,7 @@ formats a float as "ss.sss"/"m:ss.sss" and adds it as an unformatted type 1 item
 0x450280
 seems to be for processing type 1 text
 
-0x450100
+0x450100 swrText_FlushQueue1
 seems to be the fn that actually flushes the type 1 queue (called from 0x450280)
 
 0x4502B0
@@ -156,14 +158,6 @@ type: 0=you(X), 1=startline?(tealline), 2=opponent(yellowdot,map1), 3=opponent(b
 - X,Y input converted from window coords to low res render system coords
     - e.g. if window size 1280x960, x=640 turns into 160 (x=640/1280*320)
 
-void __cdecl swrText_StringParse_SetSubitem_maybe_42D8D0(__int16 a1)
-takes in the numbers from ~f0 etc. during render/parse stage
-appears to be set to 0 as a default in all other cases
-sets 50C0C4
-
-void __cdecl sub_42D900(__int16 a1)
-passes through arg1 to swrText_StringParse_SetSubitem_maybe_42D8D0
-
 void __cdecl sub_4173C0(int a1, __int16 x, __int16 y, char r, char g, char b, char a, const char *a8, int a9, int *a10, int a11)
 - does some text processing, and oscillates flt_4B5D88 between 40.0 and 255.0, going twice as fast down as up
 
@@ -179,3 +173,28 @@ BOOL __cdecl swrText_CheckStringStart_4409D0(_BYTE *a1, _BYTE *a2)
 - LKJ spawns dewback in junkyard
 - DJJ spawns a different animal in junkyard
 - CRD effect unknown
+
+void __cdecl Unk_swrText_MapSetCharacter_42EDC0(char Character)
+
+void __cdecl Unk_swrText_MapDrawCharacter_42EEB0(int X, int Y, char DecorationMode)
+- renders a single character for the map ('X', '.', etc)
+- character is set externally
+- X, Y coords depend on text resolution mode, normally lo-res
+    - bug: map system doesn't reset this after Queue1 processes, so will be hi-res if last Queue1 item was hi
+- DecorationMode = 's'=shadow, 'o'=heavy outline, 'f'=light outline, else no decoration; game uses 'p' (=none)
+
+void __cdecl swrText_RenderSetColor_42D950(char r, char g, char b, char a)
+void __cdecl swrText_RenderSetPos_42D910(__int16 x, __int16 y)
+void __cdecl swrText_RenderString_42EC50(_BYTE *pString)
+these 3 used in tandem to do the 'real' rendering, i.e.
+
+void __cdecl Unk_swrText_DrawAlignedText__417540(int FontId, char *pStr, VEC_4_I32 *pAABB, int UnkFlags, char R, char G, char B, char A, int a9, VEC_4_I32 *pRegion, BOOL bAutoAlpha)
+- doesn't purely align, some other implications due to the actual drawing being 
+  an indirect call to another function
+- flags
+	@16  center horizontal
+	@17  center vertical;  overridden by @16
+	@18  center both;  overrides @16, @17
+	@19  right align;  overridden by @16, @17, @18
+	@20  indent 5 spaces;  overrides @21
+	@21  indent 1 space

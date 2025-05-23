@@ -1,15 +1,15 @@
-found at 0x4BFEF0, ordered by track index
+- static array found at 0x4BFEE8, ordered by track index
 
 STRUCTURE
-0x0C-byte struct
-0x00	u8	?? index in planet
-0x01	u8	?? planet
-0x02	u8	?? track favorite? see fn_45BAB0
-0x04
-0x08
+0x00	i32	ModelBlockId  (fn_45B290)
+0x04	i32	SplineBlockId  (fn_45B290)
+0x08	u8	PlanetTrack
+0x09	u8	Planet
+0x0A	u8	Track Favourite  (fn_45BAB0)
+0x0B	??	?? always 0 in metadata
 0x0C END
 
 
 FUNCTIONS
 
-0x45BAB0	?? returns index of Hang->RaceCharacters that matches 0x02
+0x45BAB0	?? returns index of Hang->RaceCharacters that matches Track Favourite
